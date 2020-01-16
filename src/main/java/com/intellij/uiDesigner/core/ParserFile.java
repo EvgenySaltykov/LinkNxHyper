@@ -50,7 +50,7 @@ System.out.println("время на операцию = " + (end - start));
     private void  writeInitParam(File fileIn , BufferedWriter writer) {
 
         new SystemCoordinateBlank(fileIn);
-//        ParamTool paramTool = new ParamTool(fileIn);
+        ParamTool paramTool = new ParamTool(fileIn);
 //        String nameTool = paramTool.getName();
 //        int numberTool = paramTool.getToolNumber();
 //        int idTool = paramTool.getToolId();

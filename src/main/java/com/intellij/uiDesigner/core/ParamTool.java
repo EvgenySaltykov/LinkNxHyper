@@ -1,6 +1,15 @@
 package com.intellij.uiDesigner.core;
 
+import nxopen.NXException;
+import nxopen.cam.CAMSetup;
+import nxopen.cam.NCGroupCollection;
+
+import javax.swing.text.html.HTMLDocument;
 import java.io.File;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +33,7 @@ class ParamTool {
     ParamTool(File file) {
         this.file = file;
         findParam();
+        createTool();
     }
 
     private void findParam() {
@@ -67,15 +77,87 @@ class ParamTool {
         }
     }
 
-    String getName() {
-        return nameTool;
+    private void createTool() {
+        try {
+            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
+            nxopen.Part workPart = theSession.parts().work();
+            nxopen.cam.CAMSetup setup = workPart.camsetup();
+
+            nxopen.cam.NCGroup machineRoot = setup.getRoot(CAMSetup.View.MACHINE_TOOL);
+            nxopen.cam.CAMObject[] machineRootMembers = machineRoot.getMembers();
+
+            nxopen.cam.NCGroupCollection groups = setup.camgroupCollection();
+            nxopen.cam.NCGroupCollection.UseDefaultName camFalse = NCGroupCollection.UseDefaultName.FALSE;
+
+            String[] listTool = getToolList(groups);
+            if (!isNewTool(nameTool, listTool)) return; //если имя интсрумента уже создано прервать построение инструмента
+
+            nxopen.cam.NCGroup toolGroup;
+            toolGroup = groups.createTool(machineRoot, "mill_planar", "BALL_MILL", camFalse, nameTool);
+            nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
+
+            nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
+            toolBuilder.tlDiameterBuilder().setValue(4.5);
+            toolBuilder.tlHeightBuilder().setValue(61);
+            toolBuilder.tlFluteLnBuilder().setValue(10.1);
+            toolBuilder.tlNumFlutesBuilder().setValue(5);
+            toolBuilder.setDescription("Example ball mill");
+            toolBuilder.commit();
+            toolBuilder.destroy();
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createTool()!!!", e);
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createTool()!!!", e);
+            e.printStackTrace();
+        }
     }
 
-    int getToolNumber() {
-        return numberTool;
+    private String[] getToolList(nxopen.cam.NCGroupCollection groups) {
+        ArrayList<String> tempListTool = new ArrayList<String>();
+        String[] toolList;
+
+        try {
+            nxopen.cam.NCGroup group = null;
+
+            for (Iterator i = groups.iterator(); i.hasNext();) {
+                group = (nxopen.cam.NCGroup) i.next();
+
+                if (group instanceof nxopen.cam.Tool) {
+                    nxopen.cam.Tool tool = (nxopen.cam.Tool) group;
+                    tempListTool.add(tool.name());
+                }
+            }
+
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  getToolList!!!", e);
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  getToolList!!!", e);
+            e.printStackTrace();
+        }
+
+        if (tempListTool.size() > 0) {
+            toolList = new String[tempListTool.size()];
+
+            for (int i = 0; i < tempListTool.size(); i++) toolList[i] = tempListTool.get(i);
+        } else {
+            toolList = new String[0];
+        }
+
+        return toolList;
     }
 
-    int getToolId() {
-        return idTool;
+    private boolean isNewTool(String nameTool, String[] listTool) {
+        if (listTool.length == 0) return false;
+
+        for (String tool : listTool) {
+            if (tool.equals(nameTool)) return false;
+        }
+
+        return true;
     }
+
 }
