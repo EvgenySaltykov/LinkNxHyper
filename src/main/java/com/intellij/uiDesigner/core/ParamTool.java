@@ -4,7 +4,6 @@ import nxopen.NXException;
 import nxopen.cam.CAMSetup;
 import nxopen.cam.NCGroupCollection;
 
-import javax.swing.text.html.HTMLDocument;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -18,17 +17,21 @@ class ParamTool {
     private String nameTool = "Имя_инструмента_не_найдено";
     private int numberTool = 0;
     private int idTool = 0;
+    private String toolType = "";
     private boolean isName = false;
     private boolean isNumber = false;
     private boolean isId = false;
+    private boolean isTypeTool = false;
 
     //шаблоны и паттерны
     private final String PATTERN_NAME = ".*cfg\\(\\*WKZKOMMENTAR ";
     private final String NUMBER_TOOL = ".*cfg\\(\\*WKZNUMMER ";
     private final String ID_TOOL = ".*cfg\\(\\*TOOL_CLASS_ID ";
+    private final String TYPE_TOOL = ".*cfg\\(\\*FRTYP ";
     private final Pattern patternName = Pattern.compile(PATTERN_NAME);
     private final Pattern patternNumber = Pattern.compile(NUMBER_TOOL);
     private final Pattern patternId = Pattern.compile(ID_TOOL);
+    private final Pattern patternTypeTool = Pattern.compile(TYPE_TOOL);
 
     ParamTool(File file) {
         this.file = file;
@@ -44,12 +47,13 @@ class ParamTool {
         while (reader.ready() && maxReadLine > 0) {
             stringIn = reader.getLine();
 
-            if (isName && isNumber && isId) {
+            if (isName && isNumber && isId && isTypeTool) {
                 break;
             } else {
                 findName(stringIn, patternName.matcher(stringIn));
                 findNumber(stringIn, patternNumber.matcher(stringIn));
                 findId(stringIn, patternId.matcher(stringIn));
+                findTypeTool(stringIn, patternTypeTool.matcher(stringIn));
             }
 
             maxReadLine -= 1;
@@ -77,6 +81,13 @@ class ParamTool {
         }
     }
 
+    private void findTypeTool(String stringIn, Matcher matcher) {
+        if (!isTypeTool && matcher.find()) {
+            toolType = stringIn.substring(matcher.end(), (stringIn.length() - 1)).equals("1") ? "BALL_MILL" : "MILL";
+            isTypeTool = true;
+        }
+    }
+
     private void createTool() {
         try {
             nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
@@ -93,7 +104,7 @@ class ParamTool {
             if (!isNewTool(nameTool, listTool)) return; //если имя интсрумента уже создано прервать построение инструмента
 
             nxopen.cam.NCGroup toolGroup;
-            toolGroup = groups.createTool(machineRoot, "mill_planar", "BALL_MILL", camFalse, nameTool);
+            toolGroup = groups.createTool(machineRoot, "mill_planar", toolType, camFalse, nameTool);
             nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
 
             nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
