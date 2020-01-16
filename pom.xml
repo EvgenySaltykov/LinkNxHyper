@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>LinkNxHyper</artifactId>
+    <name>exportToolPath</name>
+    <version>2020-01-SNAPSHOT</version>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8.0_232</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <!--        <maven.compiler.source>${java.version}</maven.compiler.source>-->
+        <!--        <maven.compiler.target>${java.version}</maven.compiler.target>-->
+        <siemens.nxbin.siemenslib.version>11.0.2.7</siemens.nxbin.siemenslib.version>
+        <my.variable>42</my.variable>
+        <maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXopen</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenRemote</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenRun</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenUF</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenUFRemote</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenUFRun</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenUI</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenUIRemote</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>siemens.nxbin</groupId>
+            <artifactId>NXOpenUIRun</artifactId>
+            <version>${siemens.nxbin.siemenslib.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>intellij-idea.lib</groupId>
+            <artifactId>forms_rt</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.2</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <packaging>jar</packaging>
+
+    <developers>
+        <developer>
+            <name>Evgeny</name>
+        </developer>
+    </developers>
+
+
+    <build>
+        <finalName>${project.name}</finalName>
+
+        <!--        <sourceDirectory>src/main/java</sourceDirectory>-->
+        <!--        <scriptSourceDirectory>src/main/java/com/company</scriptSourceDirectory>-->
+        <!--        <testSourceDirectory>src/test/java</testSourceDirectory>-->
+        <!--        <testResources>-->
+        <!--            <testResource>-->
+        <!--                <directory>Test/test/java</directory>-->
+        <!--            </testResource>-->
+        <!--        </testResources>-->
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven-assembly-plugin.version}</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.intellij.uiDesigner.core.MainClass</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
