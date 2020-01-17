@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 public class MainForm extends JFrame {
-    private static JFrame fr;
+    static JFrame fr;
     private JPanel panel1;
     private JTextField textField1;
     private JButton exportButton;
