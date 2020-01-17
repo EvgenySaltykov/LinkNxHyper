@@ -17,21 +17,27 @@ class ParamTool {
     private String nameTool = "Имя_инструмента_не_найдено";
     private int numberTool = 0;
     private int idTool = 0;
+    private double diamTool = 0.0;
+    private double cutLengthTool = 0.0;
+    private double lengthTool = 0.0;
     private String toolType = "";
-    private boolean isName = false;
-    private boolean isNumber = false;
-    private boolean isId = false;
-    private boolean isTypeTool = false;
+    private boolean isDiamTool = false;
 
     //шаблоны и паттерны
     private final String PATTERN_NAME = ".*cfg\\(\\*WKZKOMMENTAR ";
     private final String NUMBER_TOOL = ".*cfg\\(\\*WKZNUMMER ";
     private final String ID_TOOL = ".*cfg\\(\\*TOOL_CLASS_ID ";
     private final String TYPE_TOOL = ".*cfg\\(\\*FRTYP ";
+    private final String CUT_LENGTH_TOOL = ".*cfg\\(\\*CUTTING_LENGTH ";
+    private final String LENGTH_TOOL = ".*cfg\\(\\*TIP_LENGTH ";
+    private final String DIAM_TOOL = ".*cfg\\(\\*FRRADIUS ";
     private final Pattern patternName = Pattern.compile(PATTERN_NAME);
     private final Pattern patternNumber = Pattern.compile(NUMBER_TOOL);
     private final Pattern patternId = Pattern.compile(ID_TOOL);
     private final Pattern patternTypeTool = Pattern.compile(TYPE_TOOL);
+    private final Pattern patternCutLengthTool = Pattern.compile(CUT_LENGTH_TOOL);
+    private final Pattern patternLengthTool = Pattern.compile(LENGTH_TOOL);
+    private final Pattern patternDiamTool = Pattern.compile(DIAM_TOOL);
 
     ParamTool(File file) {
         this.file = file;
@@ -42,18 +48,21 @@ class ParamTool {
     private void findParam() {
         ReadFile reader = new ReadFile(this.file);
         String stringIn;
-        int maxReadLine = 2000; //максимальное колличество прочтенных сторк, чтобы не читать весь файл целиком
+        int maxReadLine = 4000; //максимальное колличество прочтенных сторк, чтобы не читать весь файл целиком
 
         while (reader.ready() && maxReadLine > 0) {
             stringIn = reader.getLine();
 
-            if (isName && isNumber && isId && isTypeTool) {
+            if (isDiamTool) {
                 break;
             } else {
                 findName(stringIn, patternName.matcher(stringIn));
                 findNumber(stringIn, patternNumber.matcher(stringIn));
                 findId(stringIn, patternId.matcher(stringIn));
                 findTypeTool(stringIn, patternTypeTool.matcher(stringIn));
+                findCutLengthTool(stringIn, patternCutLengthTool.matcher(stringIn));
+                findLengthTool(stringIn, patternLengthTool.matcher(stringIn));
+                findDiamTool(stringIn, patternDiamTool.matcher(stringIn));
             }
 
             maxReadLine -= 1;
@@ -61,30 +70,45 @@ class ParamTool {
     }
 
     private void findName(String stringIn, Matcher matcher) {
-        if (!isName && matcher.find()) {
+        if (matcher.find()) {
             nameTool = stringIn.substring(matcher.end(), (stringIn.length() - 1)).replace(" ", "_").replace(":", "_");
-            isName = true;
         }
     }
 
     private void findNumber(String stringIn, Matcher matcher) {
-        if (!isNumber && matcher.find()) {
+        if (matcher.find()) {
             numberTool = Integer.parseInt(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-            isNumber = true;
         }
     }
 
     private void findId(String stringIn, Matcher matcher) {
-        if (!isId && matcher.find()) {
+        if (matcher.find()) {
             idTool = Integer.parseInt(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-            isId = true;
         }
     }
 
     private void findTypeTool(String stringIn, Matcher matcher) {
-        if (!isTypeTool && matcher.find()) {
+        if (matcher.find()) {
             toolType = stringIn.substring(matcher.end(), (stringIn.length() - 1)).equals("1") ? "BALL_MILL" : "MILL";
-            isTypeTool = true;
+        }
+    }
+
+    private void findDiamTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            diamTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1))) * 2.0;
+            isDiamTool = true;
+        }
+    }
+
+    private void findLengthTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            lengthTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
+        }
+    }
+
+    private void findCutLengthTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            cutLengthTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
         }
     }
 
@@ -108,10 +132,10 @@ class ParamTool {
             nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
 
             nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
-            toolBuilder.tlDiameterBuilder().setValue(4.5);
-            toolBuilder.tlHeightBuilder().setValue(61);
-            toolBuilder.tlFluteLnBuilder().setValue(10.1);
-            toolBuilder.tlNumFlutesBuilder().setValue(5);
+            toolBuilder.tlDiameterBuilder().setValue(diamTool);
+            toolBuilder.tlHeightBuilder().setValue(lengthTool);
+            toolBuilder.tlFluteLnBuilder().setValue(cutLengthTool);
+//            toolBuilder.tlNumFlutesBuilder().setValue(5);
             toolBuilder.setDescription("Example ball mill");
             toolBuilder.commit();
             toolBuilder.destroy();
