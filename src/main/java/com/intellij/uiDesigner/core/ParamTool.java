@@ -222,7 +222,9 @@ class ParamTool {
             toolBuilder.tlHeightBuilder().setValue(lengthTool);
             toolBuilder.tlDiameterBuilder().setValue(diamTool);
             toolBuilder.tlFluteLnBuilder().setValue(cutLengthTool);
+
             toolBuilder.tlTaperAngBuilder().setValue(3.0);
+            
 //            toolBuilder.tlNumFlutesBuilder().setValue(5);
             toolBuilder.setDescription("Example ball mill");
             toolBuilder.commit();
