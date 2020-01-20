@@ -138,7 +138,7 @@ public class MainForm extends JFrame {
                             if (!PrintLog.isException()) {
                                 JOptionPane.showMessageDialog(null, "Экспорт завершен успешно!", "", JOptionPane.INFORMATION_MESSAGE);
                             } else {
-                                String message = "Экспорт завершен c ошибками!\nОзнакомтесь с файдом log.txt, или обратитесь к разработчику!";
+                                String message = "Экспорт завершен c ошибками!\nОзнакомьтесь с файлом log.txt, или обратитесь к разработчику!";
                                 JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE);
                             }
                             PrintLog.closeLogFile(); //закрыть файл log.txt

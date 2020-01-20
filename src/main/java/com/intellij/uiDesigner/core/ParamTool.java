@@ -131,6 +131,16 @@ class ParamTool {
         }
     }
 
+    private double chamferLengthShankTool = 0.0; //длинна фаски хвостовика
+    private final String CHAMFER_LENGTH_SHANK_TOOL = "^11: vtoolShaftChamferLength\\(";
+    private final Pattern patternChamferLengthShankTool = Pattern.compile(CHAMFER_LENGTH_SHANK_TOOL);
+
+    private void findChamferLengthShankTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            chamferLengthShankTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
+        }
+    }
+
     private boolean isHolder = false; //флаг наличия патрона
     private final String FLAG_HOLDER_TOOL = "^11: *oL\\( x\\[/";
     private final Pattern patternFlagHolderTool = Pattern.compile(FLAG_HOLDER_TOOL);
@@ -207,6 +217,7 @@ class ParamTool {
                 findCutLengthTool(stringIn, patternCutLengthTool.matcher(stringIn));
                 findShankTool(stringIn, patternShankTool.matcher(stringIn));
                 findDiamShankTool(stringIn, patternDiamShankTool.matcher(stringIn));
+                findChamferLengthShankTool(stringIn, patternChamferLengthShankTool.matcher(stringIn));
                 findFlagHolderTool(stringIn, patternFlagHolderTool.matcher(stringIn));
                 findItemHolder(stringIn, patternItemHolderTool.matcher(stringIn));
                 findNumber(stringIn, patternNumber.matcher(stringIn));
@@ -360,12 +371,12 @@ class ParamTool {
             toolBuilder.tlDiameterBuilder().setValue(diamTool);
             toolBuilder.tlFluteLnBuilder().setValue(cutLengthTool);
             toolBuilder.tlCor1RadBuilder().setValue(cornerRadTool);
-//            if (isShank) {
-//                toolBuilder.setUseTaperedShank(true);
-//                toolBuilder.taperedShankDiameterBuilder().setValue(diamShankTool);
-//                toolBuilder.taperedShankLengthBuilder().setValue(shankLengthTool);
-//                toolBuilder.taperedShankTaperLengthBuilder().setValue(0.0);
-//            }
+            if (isShank) {
+                toolBuilder.setUseTaperedShank(true);
+                toolBuilder.taperedShankDiameterBuilder().setValue(diamShankTool);
+                toolBuilder.taperedShankLengthBuilder().setValue(shankLengthTool);
+                toolBuilder.taperedShankTaperLengthBuilder().setValue(chamferLengthShankTool);
+            }
 
             double lowerDiam;
             double upperDiam;
