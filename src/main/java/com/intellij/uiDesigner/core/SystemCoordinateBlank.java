@@ -1,11 +1,9 @@
 package com.intellij.uiDesigner.core;
 
-import nxopen.ListingWindow;
 import nxopen.NXException;
 import nxopen.cam.CAMSetup;
 import nxopen.cam.NCGroupCollection;
 
-import javax.swing.*;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.util.logging.Level;

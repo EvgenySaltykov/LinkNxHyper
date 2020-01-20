@@ -71,4 +71,12 @@ class PrintLog {
             e.printStackTrace();
         }
     }
+
+    static boolean isException() {
+        if (file == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

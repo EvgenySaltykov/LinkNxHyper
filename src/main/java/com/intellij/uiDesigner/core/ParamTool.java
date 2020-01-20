@@ -293,7 +293,7 @@ class ParamTool {
         if (listTool.length == 0) return false;
 
         for (String tool : listTool) {
-            if (tool.equals(nameTool)) return false;
+            if (tool.equals(nameTool.toUpperCase())) return false;
         }
 
         return true;

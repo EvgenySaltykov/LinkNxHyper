@@ -135,7 +135,12 @@ public class MainForm extends JFrame {
                         String[] listPofFiles = getListFiles(".pof");
                         if (listPofFiles.length != 0) {
                             new ParserFile(path, listPofFiles);
-                            JOptionPane.showMessageDialog(null, "Экспорт завершен успешно!", "", JOptionPane.INFORMATION_MESSAGE);
+                            if (!PrintLog.isException()) {
+                                JOptionPane.showMessageDialog(null, "Экспорт завершен успешно!", "", JOptionPane.INFORMATION_MESSAGE);
+                            } else {
+                                String message = "Экспорт завершен c ошибками!\nОзнакомтесь с файдом log.txt, или обратитесь к разработчику!";
+                                JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE);
+                            }
                             PrintLog.closeLogFile(); //закрыть файл log.txt
                             fr.setVisible(false);
                             fr.dispose();   //закрыть программу
