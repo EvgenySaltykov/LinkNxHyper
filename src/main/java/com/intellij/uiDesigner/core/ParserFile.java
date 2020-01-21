@@ -49,11 +49,9 @@ System.out.println("время на операцию = " + (end - start));
 
     private void createOperation(File fileIn , BufferedWriter writer) {
 
-        String mSysName = new SystemCoordinateBlank(fileIn).getMSysName();
-        String nameTool = new ParamTool(fileIn).getNameTool();
-//        ParamOperation paramOperation = new ParamOperation(fileIn);
-//        String nameOper = paramOperation.getNameOper();
-//        String nameGroupProgram = paramOperation.getNameGroupProgram();
+        new SystemCoordinateBlank(fileIn).getMSysName();
+        new ParamTool(fileIn).getNameTool();
+        new ParamOperation(fileIn);
 
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
 //        int feed = new Feed(fileIn).getFeed();

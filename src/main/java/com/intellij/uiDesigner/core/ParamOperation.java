@@ -1,27 +1,26 @@
 package com.intellij.uiDesigner.core;
 
 import java.io.File;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class ParamOperation {
     private File file;
-    private String nameOper;
     private String nameGroupProgram;
-    private final Pattern PATTERN_NAME_OPER = Pattern.compile("1: cfg\\(\\*JOBNAME ");
-    private Matcher matcherNameOper;
-    private boolean isFindNameOper = false;
-    private final Pattern PATTERN_NAME_GROUP_PROGRAM = Pattern.compile("1: cfg\\(\\*JOBNAME ");
+    private final Pattern PATTERN_NAME_GROUP_PROGRAM = Pattern.compile("^1: cfg\\(\\*JOBLISTNAME ");
     private Matcher matcherNameGroupProgram;
     private boolean isFindNameGroupProgram = false;
+    private String nameOper;
+    private final Pattern PATTERN_NAME_OPER = Pattern.compile("^1: cfg\\(\\*JOBNAME ");
+    private Matcher matcherNameOper;
+    private boolean isFindNameOper = false;
 
     public ParamOperation(File file) {
         this.file = file;
-        findParam();
+        findNames();
     }
 
-    private void findParam() {
+    private void findNames() {
         //возвращает имя операции
         ReadFile reader = new ReadFile(this.file);
         String stringIn;
@@ -74,21 +73,5 @@ class ParamOperation {
         } else {
             return "";
         }
-    }
-
-    String getNameOper() {
-        if (this.nameOper.equals("")) {
-            new PrintLog(Level.WARNING, "!!!Не найдено имя операции!!!");
-        }
-
-        return this.nameOper;
-    }
-
-    String getNameGroupProgram() {
-        if (this.nameGroupProgram.equals("")) {
-            new PrintLog(Level.WARNING, "!!!Не найдено имя группы программ!!!");
-        }
-
-        return this.nameGroupProgram;
     }
 }
