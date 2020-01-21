@@ -1,7 +1,15 @@
 package com.intellij.uiDesigner.core;
 
+import nxopen.NXException;
+import nxopen.cam.CAMSetup;
+import nxopen.cam.NCGroupCollection;
+
+import javax.swing.*;
 import java.io.*;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.logging.Level;
 
 class ParserFile {
@@ -46,9 +54,13 @@ System.out.println("время на операцию = " + (end - start));
 
     private void createOperation(File fileIn , BufferedWriter writer) {
 
-        new SystemCoordinateBlank(fileIn).getMSysName();
-        new ParamTool(fileIn).getNameTool();
-        new Operation(fileIn);
+        String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
+        String toolName = new Tool(fileIn).getNameTool();
+        String groupProgramName = new Operation(fileIn).getNameGroupProgram();
+        String operName = new Operation(fileIn).getNameOper();
+        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
+        int feed = new Feed(fileIn).getFeed();
+        createGroupProgram(groupProgramName);
 
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
 //        int feed = new Feed(fileIn).getFeed();
@@ -118,4 +130,80 @@ System.out.println("время на операцию = " + (end - start));
 //            new PrintLog(Level.WARNING, "!!!Ошибка записи CLS-файла!!!", e);
 //        }
 //    }
+
+    private void createGroupProgram(String groupProgramName) {
+        try {
+            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
+            nxopen.Part workPart = theSession.parts().work();
+            nxopen.cam.CAMSetup setup = workPart.camsetup();
+
+            nxopen.cam.NCGroup programRoot = setup.getRoot(CAMSetup.View.PROGRAM_ORDER);
+            nxopen.cam.CAMObject[] programRootMembers = programRoot.getMembers();
+
+            nxopen.cam.NCGroupCollection groups = setup.camgroupCollection();
+
+            String[] listProgram = getProgramList(groups);
+//            if (!isNewTool(nameTool, listTool)) {
+//                return; //если имя интсрумента уже создано прервать построение инструмента
+//            }
+//
+//            if (typeTool.equals("BALL_MILL")) {
+//                createBallMill(groups, machineRoot);
+//            }else if (typeTool.equals("MILL")) {
+//                createEndMill(groups, machineRoot);
+//            } else {
+//                JOptionPane.showMessageDialog(null, "Не удалось определить тип инструмента!", "", JOptionPane.WARNING_MESSAGE);
+//                PrintLog.closeLogFile(); //закрыть файл log.txt
+//                MainForm.fr.setVisible(false);
+//                MainForm.fr.dispose();   //закрыть программу
+//            }
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createGroupProgram!!!", e);
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createGroupProgram!!!", e);
+            e.printStackTrace();
+        }
+    }
+
+    private String[] getProgramList(nxopen.cam.NCGroupCollection groups) {
+        ArrayList<String> tempListProgram = new ArrayList<String>();
+        String[] programList = null;
+
+        try {
+            nxopen.cam.NCGroup group;
+
+            for (Iterator i = groups.iterator(); i.hasNext(); ) {
+                group = (nxopen.cam.NCGroup) i.next();
+
+                if (group instanceof nxopen.cam.Operation) {
+                    nxopen.cam.Operation program = (nxopen.cam.Operation) group;
+                    try {
+                        tempListProgram.add(program.name());
+                    } catch (NXException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(program);
+                }
+            }
+//
+//        } catch (NXException e) {
+//            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  getToolList!!!", e);
+//            e.printStackTrace();
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  getToolList!!!", e);
+            e.printStackTrace();
+        }
+
+//        if (tempListTool.size() > 0) {
+//            toolList = new String[tempListTool.size()];
+//
+//            for (int i = 0; i < tempListTool.size(); i++) toolList[i] = tempListTool.get(i);
+//        } else {
+//            toolList = new String[0];
+//        }
+
+        return programList;
+    }
 }

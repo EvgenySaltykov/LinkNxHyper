@@ -14,14 +14,10 @@ class Operation {
     private final Pattern PATTERN_NAME_OPER = Pattern.compile("^1: cfg\\(\\*JOBNAME ");
     private Matcher matcherNameOper;
     private boolean isFindNameOper = false;
-    private int spindleSpeed = 0;
-    private int feed = 0;
 
-    public Operation(File file) {
+    Operation(File file) {
         this.file = file;
         findNames();
-        spindleSpeed = new SpindleSpeed(file).getSpeed();
-        feed = new Feed(file).getFeed();
     }
 
     private void findNames() {
@@ -77,5 +73,13 @@ class Operation {
         } else {
             return "";
         }
+    }
+
+    String getNameGroupProgram() {
+        return this.nameGroupProgram;
+    }
+
+    String getNameOper() {
+        return this.nameOper;
     }
 }

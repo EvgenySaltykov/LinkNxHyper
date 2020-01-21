@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class ParamTool {
+class Tool {
     private File file;
 
     private int idTool = 0; //корректор на длинну инструмента
@@ -190,7 +190,7 @@ class ParamTool {
     }
 
 
-    ParamTool(File file) {
+    Tool(File file) {
         this.file = file;
         findParam();
         createTool();
@@ -411,20 +411,3 @@ class ParamTool {
     }
 }
 
-class HolderPairVar {
-    private double x;
-    private double y;
-
-    HolderPairVar(double x, double y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    double getX() {
-        return this.x;
-    }
-
-    double getY() {
-        return this.y;
-    }
-}
