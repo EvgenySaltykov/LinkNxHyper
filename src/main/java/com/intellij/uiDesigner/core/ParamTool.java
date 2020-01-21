@@ -270,7 +270,7 @@ class ParamTool {
         String[] toolList;
 
         try {
-            nxopen.cam.NCGroup group = null;
+            nxopen.cam.NCGroup group;
 
             for (Iterator i = groups.iterator(); i.hasNext(); ) {
                 group = (nxopen.cam.NCGroup) i.next();
@@ -404,6 +404,10 @@ class ParamTool {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createEndMill!!!", e);
             e.printStackTrace();
         }
+    }
+
+    String getNameTool() {
+        return this.nameTool;
     }
 }
 

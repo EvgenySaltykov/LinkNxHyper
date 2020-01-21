@@ -27,7 +27,7 @@ long start = new Date().getTime();
             for (String file : listFile) {//перебрать все POF-файлы в директории
                 File fileIn = new File(path + "\\" + file);
 
-                writeInitParam(fileIn, writerFile);
+                createOperation(fileIn, writerFile);
 
                 //записать GOTO
 //                writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
@@ -47,15 +47,14 @@ System.out.println("время на операцию = " + (end - start));
         }
     }
 
-    private void  writeInitParam(File fileIn , BufferedWriter writer) {
+    private void createOperation(File fileIn , BufferedWriter writer) {
 
-        new SystemCoordinateBlank(fileIn);
-        ParamTool paramTool = new ParamTool(fileIn);
-//        String nameTool = paramTool.getName();
-//        int numberTool = paramTool.getToolNumber();
-//        int idTool = paramTool.getToolId();
-//        String mSYS = new SystemCoordinateBlank(fileIn).getMSYS();
-//        String nameOper = new NameOperation(fileIn).getName();
+        String mSysName = new SystemCoordinateBlank(fileIn).getMSysName();
+        String nameTool = new ParamTool(fileIn).getNameTool();
+//        ParamOperation paramOperation = new ParamOperation(fileIn);
+//        String nameOper = paramOperation.getNameOper();
+//        String nameGroupProgram = paramOperation.getNameGroupProgram();
+
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
 //        int feed = new Feed(fileIn).getFeed();
 
@@ -97,31 +96,31 @@ System.out.println("время на операцию = " + (end - start));
 //        System.out.println("");
     }
 
-    static String doubleFormat(String pattern, double value) {
-        //округляет тип double, согласно шаблону
-        try {
-            Locale locale = new Locale("en", "UK");
-            DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(locale);
-            decimalFormat.applyLocalizedPattern(pattern);
-            String roundString = decimalFormat.format(value);
-
-            return roundString;
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    static void writeEndOperation(BufferedWriter writer) {
-        try {
-            writer.write("PAINT/SPEED,10");
-            writer.newLine();
-            writer.write("PAINT/TOOL,NOMORE");
-            writer.newLine();
-            writer.write("END-OF-PATH");
-            writer.newLine();
-        } catch(IOException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка записи CLS-файла!!!", e);
-        }
-    }
+//    static String doubleFormat(String pattern, double value) {
+//        //округляет тип double, согласно шаблону
+//        try {
+//            Locale locale = new Locale("en", "UK");
+//            DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(locale);
+//            decimalFormat.applyLocalizedPattern(pattern);
+//            String roundString = decimalFormat.format(value);
+//
+//            return roundString;
+//        } catch (IllegalArgumentException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//    }
+//
+//    static void writeEndOperation(BufferedWriter writer) {
+//        try {
+//            writer.write("PAINT/SPEED,10");
+//            writer.newLine();
+//            writer.write("PAINT/TOOL,NOMORE");
+//            writer.newLine();
+//            writer.write("END-OF-PATH");
+//            writer.newLine();
+//        } catch(IOException e) {
+//            new PrintLog(Level.WARNING, "!!!Ошибка записи CLS-файла!!!", e);
+//        }
+//    }
 }

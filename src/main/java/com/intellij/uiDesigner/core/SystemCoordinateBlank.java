@@ -76,7 +76,7 @@ class SystemCoordinateBlank {
             }
 
             if (isEmptyMSYS) { // если имя СКС не создано
-                nxopen.cam.NCGroup nCGroup1 = ((nxopen.cam.NCGroup) workPart.camsetup().camgroupCollection().findObject(parentGeometry));
+                nxopen.cam.NCGroup nCGroup1 = (workPart.camsetup().camgroupCollection().findObject(parentGeometry));
                 nxopen.cam.NCGroup nCGroup2;
                 nCGroup2 = workPart.camsetup().camgroupCollection().createGeometry(nCGroup1, "mill_planar", "MCS", NCGroupCollection.UseDefaultName.FALSE, mSysName);
 
@@ -103,5 +103,9 @@ class SystemCoordinateBlank {
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка создания workPart!!!", e);
         }
+    }
+
+    String getMSysName() {
+        return this.mSysName;
     }
 }

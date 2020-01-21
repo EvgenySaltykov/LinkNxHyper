@@ -113,7 +113,7 @@ public class MainForm extends JFrame {
                     } else {
                         textField1.setText(path.getPath().substring(0, path.getPath().lastIndexOf("\\")));
                     }
-//                System.out.println(path.getName());
+//                System.out.println(path.getNameOper());
 //                System.out.println(path.isDirectory());
                 } catch (NullPointerException e) {
                     textField1.setBackground(Color.RED);
@@ -288,9 +288,6 @@ public class MainForm extends JFrame {
         panel1.add(cancelButton, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
-    /**
-     * @noinspection ALL
-     */
     private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
         if (currentFont == null) return null;
         String resultName;
@@ -307,9 +304,6 @@ public class MainForm extends JFrame {
         return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
     }
 
-    /**
-     * @noinspection ALL
-     */
     public JComponent $$$getRootComponent$$$() {
         return panel1;
     }
