@@ -18,7 +18,6 @@ class ParamOperation {
     public ParamOperation(File file) {
         this.file = file;
         findNames();
-        
     }
 
     private void findNames() {
