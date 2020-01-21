@@ -1,10 +1,7 @@
 package com.intellij.uiDesigner.core;
 
 import java.io.*;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.logging.Level;
 
 class ParserFile {
@@ -51,7 +48,7 @@ System.out.println("время на операцию = " + (end - start));
 
         new SystemCoordinateBlank(fileIn).getMSysName();
         new ParamTool(fileIn).getNameTool();
-        new ParamOperation(fileIn);
+        new Operation(fileIn);
 
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
 //        int feed = new Feed(fileIn).getFeed();

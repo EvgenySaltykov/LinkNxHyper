@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class ParamOperation {
+class Operation {
     private File file;
     private String nameGroupProgram;
     private final Pattern PATTERN_NAME_GROUP_PROGRAM = Pattern.compile("^1: cfg\\(\\*JOBLISTNAME ");
@@ -15,7 +15,7 @@ class ParamOperation {
     private Matcher matcherNameOper;
     private boolean isFindNameOper = false;
 
-    public ParamOperation(File file) {
+    public Operation(File file) {
         this.file = file;
         findNames();
     }
