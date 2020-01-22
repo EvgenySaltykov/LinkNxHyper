@@ -17,7 +17,6 @@ class SystemCoordinateBlank {
     private static final String MSYS_NAME_PATTERN = "^1: cfg\\(\\*NCS_NAME ";
     private static final String MSYS_PATTERN = ".*frameCs_x\\(|.*frameCs_y\\(|.*frameCs_z\\(|.*frameCs_o\\(|.*frameCs_id\\(";
     private static final String GET_ITEM_MSYS_PATTERN = "(^\\d*: frameCs_x\\(|,|\\))|(^\\d*: frameCs_y\\(|,|\\))|(^\\d*: frameCs_z\\(|,|\\))|(^\\d*: frameCs_o\\(|,|\\))|(^\\d*: frameCs_id\\(|,|\\))";
-    private boolean isEmptyMSYS = true;
 
     SystemCoordinateBlank(File file) {
         this.file = file;
@@ -59,6 +58,8 @@ class SystemCoordinateBlank {
     }
 
     private void createSysInNx(double[] sys) {
+        boolean isEmptyMSYS = true;
+
         try {
             nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
             nxopen.Part workPart = theSession.parts().work();
@@ -68,7 +69,7 @@ class SystemCoordinateBlank {
             String parentGeometry = geometryRoot.name();
             nxopen.cam.CAMObject[] geometryRootMembers = geometryRoot.getMembers();
 
-            String[] listGeometryMembers = MainClass.getListMembersNx(geometryRootMembers);
+            String[] listGeometryMembers = Nx.getListMembers(geometryRootMembers);
             for (String name : listGeometryMembers) {
                 if (name.equals(mSysName.toUpperCase())) {
                     isEmptyMSYS = false;

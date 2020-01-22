@@ -1,12 +1,11 @@
 package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
+import nxopen.Session;
 import nxopen.cam.CAMSetup;
 
 import java.io.*;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.logging.Level;
 
@@ -14,6 +13,7 @@ class ParserFile {
     private File path;
     private String[] listFile;
     private BufferedWriter writer;
+    private String groupProgramName;
 
     ParserFile(File path, String[] listFile) {
         this.path = path;
@@ -54,10 +54,11 @@ class ParserFile {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
         String toolName = new Tool(fileIn).getNameTool();
-        String groupProgramName = new Operation(fileIn).getNameGroupProgram();
+        groupProgramName = new Operation(fileIn).getNameGroupProgram();
         String operName = new Operation(fileIn).getNameOper();
         int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
         int feed = new Feed(fileIn).getFeed();
+
         createGroupProgram(groupProgramName);
 
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
@@ -130,6 +131,8 @@ class ParserFile {
 //    }
 
     private void createGroupProgram(String groupProgramName) {
+        boolean isEmptyProgram = true;
+
         try {
             nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
             nxopen.Part workPart = theSession.parts().work();
@@ -138,24 +141,21 @@ class ParserFile {
             nxopen.cam.NCGroup programRoot = setup.getRoot(CAMSetup.View.PROGRAM_ORDER);
             nxopen.cam.CAMObject[] programRootMembers = programRoot.getMembers();
 
-//            nxopen.cam.NCGroupCollection groups = setup.camgroupCollection();
+            nxopen.cam.NCGroup group = setup.camgroupCollection().findObject("NC_PROGRAM");
 
-            String[] listProgram = MainClass.getListMembersNx(programRootMembers);
-//            if (!isNewTool(nameTool, listTool)) {
-//                return; //если имя интсрумента уже создано прервать построение инструмента
-//            }
-//
-//            if (typeTool.equals("BALL_MILL")) {
-//                createBallMill(groups, machineRoot);
-//            }else if (typeTool.equals("MILL")) {
-//                createEndMill(groups, machineRoot);
-//            } else {
-//                JOptionPane.showMessageDialog(null, "Не удалось определить тип инструмента!", "", JOptionPane.WARNING_MESSAGE);
-//                PrintLog.closeLogFile(); //закрыть файл log.txt
-//                MainForm.fr.setVisible(false);
-//                MainForm.fr.dispose();   //закрыть программу
-//            }
+            String[] listProgram = Nx.getListMembers(programRootMembers);
+            for (String programName : listProgram) {
+                if (programName.equals(groupProgramName.toUpperCase())) {
+                    isEmptyProgram = false;
+                }
+            }
 
+            if (isEmptyProgram) {
+                nxopen.cam.NCGroup prog = workPart.camsetup().camgroupCollection().createProgram(group,  "mill_planar", "PROGRAM", nxopen.cam.NCGroupCollection.UseDefaultName.FALSE, groupProgramName);
+                nxopen.cam.ProgramOrderGroupBuilder programBuilder = workPart.camsetup().camgroupCollection().createProgramOrderGroupBuilder(prog);
+                programBuilder.commit();
+                programBuilder.destroy();
+            }
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createGroupProgram!!!", e);
             e.printStackTrace();
