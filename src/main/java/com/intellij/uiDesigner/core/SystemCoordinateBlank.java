@@ -67,11 +67,11 @@ class SystemCoordinateBlank {
             nxopen.cam.NCGroup geometryRoot = setup.getRoot(CAMSetup.View.GEOMETRY);
             String parentGeometry = geometryRoot.name();
             nxopen.cam.CAMObject[] geometryRootMembers = geometryRoot.getMembers();
-            for (nxopen.cam.CAMObject member : geometryRootMembers) {
-                String s = member.name();
-                if (s.equals(mSysName.toUpperCase())) {
+
+            String[] listGeometryMembers = MainClass.getListMembersNx(geometryRootMembers);
+            for (String name : listGeometryMembers) {
+                if (name.equals(mSysName.toUpperCase())) {
                     isEmptyMSYS = false;
-                    break;
                 }
             }
 

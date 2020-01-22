@@ -2,14 +2,12 @@ package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
 import nxopen.cam.CAMSetup;
-import nxopen.cam.NCGroupCollection;
 
-import javax.swing.*;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.logging.Level;
 
 class ParserFile {
@@ -22,10 +20,10 @@ class ParserFile {
         this.listFile = listFile;
 
         try {
-long start = new Date().getTime();
+            long start = new Date().getTime();
             File fileOut = new File(path + "\\" + "exportPof.cls");
 //            BufferedWriter writerFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOut),"cp1251"));
-            BufferedWriter writerFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOut),"UTF-8"));
+            BufferedWriter writerFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOut), "UTF-8"));
             ByteArrayOutputStream writerBuffer;
 
 
@@ -45,14 +43,14 @@ long start = new Date().getTime();
 
 //            writerFile.close();
 
-long end = new Date().getTime();
-System.out.println("время на операцию = " + (end - start));
+            long end = new Date().getTime();
+            System.out.println("время на операцию = " + (end - start));
         } catch (IOException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка чтения из pof-файла!!!", e);
         }
     }
 
-    private void createOperation(File fileIn , BufferedWriter writer) {
+    private void createOperation(File fileIn, BufferedWriter writer) {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
         String toolName = new Tool(fileIn).getNameTool();
@@ -140,9 +138,9 @@ System.out.println("время на операцию = " + (end - start));
             nxopen.cam.NCGroup programRoot = setup.getRoot(CAMSetup.View.PROGRAM_ORDER);
             nxopen.cam.CAMObject[] programRootMembers = programRoot.getMembers();
 
-            nxopen.cam.NCGroupCollection groups = setup.camgroupCollection();
+//            nxopen.cam.NCGroupCollection groups = setup.camgroupCollection();
 
-            String[] listProgram = getProgramList(groups);
+            String[] listProgram = MainClass.getListMembersNx(programRootMembers);
 //            if (!isNewTool(nameTool, listTool)) {
 //                return; //если имя интсрумента уже создано прервать построение инструмента
 //            }
@@ -165,45 +163,5 @@ System.out.println("время на операцию = " + (end - start));
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createGroupProgram!!!", e);
             e.printStackTrace();
         }
-    }
-
-    private String[] getProgramList(nxopen.cam.NCGroupCollection groups) {
-        ArrayList<String> tempListProgram = new ArrayList<String>();
-        String[] programList = null;
-
-        try {
-            nxopen.cam.NCGroup group;
-
-            for (Iterator i = groups.iterator(); i.hasNext(); ) {
-                group = (nxopen.cam.NCGroup) i.next();
-
-                if (group instanceof nxopen.cam.Operation) {
-                    nxopen.cam.Operation program = (nxopen.cam.Operation) group;
-                    try {
-                        tempListProgram.add(program.name());
-                    } catch (NXException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println(program);
-                }
-            }
-//
-//        } catch (NXException e) {
-//            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  getToolList!!!", e);
-//            e.printStackTrace();
-        } catch (RemoteException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  getToolList!!!", e);
-            e.printStackTrace();
-        }
-
-//        if (tempListTool.size() > 0) {
-//            toolList = new String[tempListTool.size()];
-//
-//            for (int i = 0; i < tempListTool.size(); i++) toolList[i] = tempListTool.get(i);
-//        } else {
-//            toolList = new String[0];
-//        }
-
-        return programList;
     }
 }
