@@ -3,6 +3,8 @@ package com.intellij.uiDesigner.core;
 import nxopen.BaseSession;
 import nxopen.NXException;
 
+import javax.swing.*;
+
 public class MainClass {
 
     public static void main(String[] args) throws NXException, java.rmi.RemoteException {
@@ -15,6 +17,7 @@ public class MainClass {
 
         //Создать форму для диалога с пользователем
         MainForm.createForm();
+        System.out.println("");
     }
 
     public static int getUnloadOption() {

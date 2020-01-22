@@ -77,9 +77,9 @@ class SystemCoordinateBlank {
             }
 
             if (isEmptyMSYS) { // если имя СКС не создано
-                nxopen.cam.NCGroup nCGroup1 = (workPart.camsetup().camgroupCollection().findObject(parentGeometry));
+                nxopen.cam.NCGroup nCGroup1 = (setup.camgroupCollection().findObject(parentGeometry));
                 nxopen.cam.NCGroup nCGroup2;
-                nCGroup2 = workPart.camsetup().camgroupCollection().createGeometry(nCGroup1, "mill_planar", "MCS", NCGroupCollection.UseDefaultName.FALSE, mSysName);
+                nCGroup2 = setup.camgroupCollection().createGeometry(nCGroup1, "mill_planar", "MCS", NCGroupCollection.UseDefaultName.FALSE, mSysName);
 
                 nxopen.Point3d origin3 = new nxopen.Point3d(sys[10], sys[11], sys[12]);
                 nxopen.Vector3d xDirection1 = new nxopen.Vector3d(sys[1], sys[2], sys[3]);
@@ -91,7 +91,7 @@ class SystemCoordinateBlank {
 
                 nxopen.cam.OrientGeometry orientGeometry1 = ((nxopen.cam.OrientGeometry) nCGroup2);
                 nxopen.cam.MillOrientGeomBuilder millOrientGeomBuilder1;
-                millOrientGeomBuilder1 = workPart.camsetup().camgroupCollection().createMillOrientGeomBuilder(orientGeometry1);
+                millOrientGeomBuilder1 = setup.camgroupCollection().createMillOrientGeomBuilder(orientGeometry1);
 
                 millOrientGeomBuilder1.setSpecialOutputMode(nxopen.cam.OrientGeomBuilder.SpecialOutputModes.FIXTURE_OFFSET);
                 millOrientGeomBuilder1.fixtureOffsetBuilder().setValue((int) sys[0]);

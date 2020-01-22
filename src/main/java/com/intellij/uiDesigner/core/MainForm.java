@@ -27,7 +27,8 @@ public class MainForm extends JFrame {
     private static File path;
 
 
-    private MainForm() {
+//    private MainForm() {
+     MainForm() {
         $$$setupUI$$$();
         createAndAddInfoButton(); // добавление кнопки ИНФО,т.к. через конструктор не подключить было иконку
 
