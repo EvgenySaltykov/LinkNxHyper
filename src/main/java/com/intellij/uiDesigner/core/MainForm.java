@@ -45,13 +45,8 @@ public class MainForm extends JFrame {
 //        lw.writeLine("!!! Hello World !!!");
 //        lw.writeLine("");
 
-        if (fr == null){
-            //Создать форму для диалога с пользователем
-            new MainForm().createForm();
-        } else {
-            //обновить окно NX
-            fr = null;
-        }
+        //Создать форму для диалога с пользователем
+        new MainForm().createForm();
     }
 
     private JFrame createForm() {
@@ -159,7 +154,7 @@ public class MainForm extends JFrame {
                         if (listPofFiles.length != 0) {
                             new ParserFile(path, listPofFiles);
                             if (!PrintLog.isException()) {
-                                JOptionPane.showMessageDialog(null, "Экспорт завершен успешно!\nЧтобы обновить экран щелкните еще раз по кнопке Exp_Hyper", "", JOptionPane.INFORMATION_MESSAGE);
+                                JOptionPane.showMessageDialog(null, "Экспорт завершен успешно!", "", JOptionPane.INFORMATION_MESSAGE);
                             } else {
                                 String message = "Экспорт завершен c ошибками!\nОзнакомьтесь с файлом log.txt, или обратитесь к разработчику!";
                                 JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE);
@@ -167,6 +162,7 @@ public class MainForm extends JFrame {
                             PrintLog.closeLogFile(); //закрыть файл log.txt
                             fr.setVisible(false);
                             fr.dispose();   //закрыть программу
+                            updateSession(); //обновить сессию, чтобы появились операции в окне NX
                         } else {
                             //если отсутствуют pof-файлы показать диалоговое окно с ошибкой
                             JOptionPane.showMessageDialog(null, "В директории pof-файлы не найдены!", "", JOptionPane.WARNING_MESSAGE);
@@ -261,6 +257,19 @@ public class MainForm extends JFrame {
                 new PrintLog(Level.WARNING, "!!!Файл ".concat(fileName).concat(" не найден!!!"), e);
                 return null;
             }
+        }
+    }
+
+    private void updateSession() {
+        try {
+            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
+            theSession.applicationSwitchImmediate("UG_APP_MANUFACTURING");
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе updateSession!!!", e);
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteExceptionв методе updateSession!!!", e);
+            e.printStackTrace();
         }
     }
 
