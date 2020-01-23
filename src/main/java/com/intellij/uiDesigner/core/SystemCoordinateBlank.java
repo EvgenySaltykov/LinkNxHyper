@@ -100,9 +100,11 @@ class SystemCoordinateBlank {
                 millOrientGeomBuilder1.destroy();
             }
         } catch (NXException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка создания сессии nxopen.Session!!!", e);
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createSysInNx!!!", e);
+            e.printStackTrace();
         } catch (RemoteException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка создания workPart!!!", e);
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createSysInNx!!!", e);
+            e.printStackTrace();
         }
     }
 

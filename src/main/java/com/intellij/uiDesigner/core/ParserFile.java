@@ -1,8 +1,8 @@
 package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
-import nxopen.Session;
 import nxopen.cam.CAMSetup;
+import nxopen.cam.OperationCollection;
 
 import java.io.*;
 import java.rmi.RemoteException;
@@ -13,7 +13,6 @@ class ParserFile {
     private File path;
     private String[] listFile;
     private BufferedWriter writer;
-    private String groupProgramName;
 
     ParserFile(File path, String[] listFile) {
         this.path = path;
@@ -54,12 +53,42 @@ class ParserFile {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
         String toolName = new Tool(fileIn).getNameTool();
-        groupProgramName = new Operation(fileIn).getNameGroupProgram();
+        String groupProgramName = new Operation(fileIn).getNameGroupProgram();
         String operName = new Operation(fileIn).getNameOper();
         int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
         int feed = new Feed(fileIn).getFeed();
 
         createGroupProgram(groupProgramName);
+
+        try {
+            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
+            nxopen.Part workPart = workPart = theSession.parts().work();
+            nxopen.cam.CAMSetup setup = workPart.camsetup();
+
+            nxopen.cam.NCGroup prog = setup.camgroupCollection().findObject(groupProgramName);
+            nxopen.cam.Method method = (nxopen.cam.Method) setup.camgroupCollection().findObject("METHOD");
+            nxopen.cam.Tool tool = (nxopen.cam.Tool) setup.camgroupCollection().findObject(toolName);
+            nxopen.cam.OrientGeometry geometry = (nxopen.cam.OrientGeometry) setup.camgroupCollection().findObject(msysName);
+
+            nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "MILL_USER",
+                    OperationCollection.UseDefaultName.FALSE, operName);
+
+            nxopen.cam.MillUserDefined millUserDefined =(nxopen.cam.MillUserDefined) operation;
+            nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
+
+
+            builder.commit();
+            builder.destroy();
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createOperation!!!", e);
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createOperation!!!", e);
+            e.printStackTrace();
+        }
+
+
 
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
 //        int feed = new Feed(fileIn).getFeed();
