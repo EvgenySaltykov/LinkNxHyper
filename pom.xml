@@ -114,7 +114,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.intellij.uiDesigner.core.MainClass</mainClass>
+                            <mainClass>com.intellij.uiDesigner.core.MainForm</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
