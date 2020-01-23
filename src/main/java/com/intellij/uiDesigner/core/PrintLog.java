@@ -13,7 +13,7 @@ class PrintLog {
     private static PrintStream console = System.err;
     private static PrintStream stream;
 
-    static Logger logger = Logger.getLogger(MainClass.class.getName());
+    static Logger logger = Logger.getLogger(MainForm.class.getName());
 
     PrintLog(Level level, String message) {
         //вывод в файл информационного лога
