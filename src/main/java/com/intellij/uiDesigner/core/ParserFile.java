@@ -76,8 +76,15 @@ class ParserFile {
             nxopen.cam.MillUserDefined millUserDefined =(nxopen.cam.MillUserDefined) operation;
             nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
 
+            builder.setEnvVarName("HyperMill");
 
-            builder.commit();
+            //генерировать траекторию
+            nxopen.NXObject nXObject1 = builder.commit();
+            nxopen.cam.CAMObject [] objects1  = new nxopen.cam.CAMObject[1];
+            nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined)nXObject1);
+            objects1[0] = millUserDefined2;
+            workPart.camsetup().generateToolPath(objects1);
+
             builder.destroy();
 
         } catch (NXException e) {
