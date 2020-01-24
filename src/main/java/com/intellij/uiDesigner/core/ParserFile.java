@@ -29,7 +29,7 @@ class ParserFile {
             for (String file : listFile) {//перебрать все POF-файлы в директории
                 File fileIn = new File(path + "\\" + file);
 
-                createOperation(fileIn, writerFile);
+                exportOperation(fileIn, writerFile);
 
                 //записать GOTO
 //                writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
@@ -49,7 +49,7 @@ class ParserFile {
         }
     }
 
-    private void createOperation(File fileIn, BufferedWriter writer) {
+    private void exportOperation(File fileIn, BufferedWriter writer) {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
         String toolName = new Tool(fileIn).getNameTool();
@@ -60,39 +60,9 @@ class ParserFile {
 
         createGroupProgram(groupProgramName);
 
-        try {
-            Nx nx = new Nx();
-            nxopen.Part workPart = nx.getWorkPart();
-            nxopen.cam.CAMSetup setup = nx.getSetup();
+        createOperation(groupProgramName, operName, toolName, msysName);
 
-            nxopen.cam.NCGroup prog = setup.camgroupCollection().findObject(groupProgramName);
-            nxopen.cam.Method method = (nxopen.cam.Method) setup.camgroupCollection().findObject("METHOD");
-            nxopen.cam.Tool tool = (nxopen.cam.Tool) setup.camgroupCollection().findObject(toolName);
-            nxopen.cam.OrientGeometry geometry = (nxopen.cam.OrientGeometry) setup.camgroupCollection().findObject(msysName);
-
-            nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "MILL_USER",
-                    OperationCollection.UseDefaultName.FALSE, operName);
-
-            nxopen.cam.MillUserDefined millUserDefined =(nxopen.cam.MillUserDefined) operation;
-            nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
-
-            builder.setEnvVarName("HyperMill");
-
-            //генерировать траекторию
-            nxopen.NXObject nXObject1 = builder.commit();
-            nxopen.cam.CAMObject [] objects1  = new nxopen.cam.CAMObject[1];
-            nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined)nXObject1);
-            objects1[0] = millUserDefined2;
-            workPart.camsetup().generateToolPath(objects1);
-
-            builder.destroy();
-
-        } catch (NXException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createOperation!!!", e);
-        } catch (RemoteException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createOperation!!!", e);
-        }
-
+        setSpeedAndFeed(operName, spindleSpeed, feed);
 
 
 //        int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
@@ -165,6 +135,8 @@ class ParserFile {
 //    }
 
     private void createGroupProgram(String groupProgramName) {
+        //Создать группу программ для операций
+
         boolean isEmptyProgram = true;
 
         try {
@@ -185,7 +157,7 @@ class ParserFile {
             }
 
             if (isEmptyProgram) {
-                nxopen.cam.NCGroup prog = workPart.camsetup().camgroupCollection().createProgram(group,  "mill_planar", "PROGRAM", nxopen.cam.NCGroupCollection.UseDefaultName.FALSE, groupProgramName);
+                nxopen.cam.NCGroup prog = workPart.camsetup().camgroupCollection().createProgram(group, "mill_planar", "PROGRAM", nxopen.cam.NCGroupCollection.UseDefaultName.FALSE, groupProgramName);
                 nxopen.cam.ProgramOrderGroupBuilder programBuilder = workPart.camsetup().camgroupCollection().createProgramOrderGroupBuilder(prog);
                 programBuilder.commit();
                 programBuilder.destroy();
@@ -196,4 +168,72 @@ class ParserFile {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createGroupProgram!!!", e);
         }
     }
+
+    private void createOperation(String groupProgramName, String operName, String toolName, String msysName) {
+        // создать операцию в Nx
+        try {
+            Nx nx = new Nx();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
+
+            nxopen.cam.NCGroup prog = setup.camgroupCollection().findObject(groupProgramName);
+            nxopen.cam.Method method = (nxopen.cam.Method) setup.camgroupCollection().findObject("METHOD");
+            nxopen.cam.Tool tool = (nxopen.cam.Tool) setup.camgroupCollection().findObject(toolName);
+            nxopen.cam.OrientGeometry geometry = (nxopen.cam.OrientGeometry) setup.camgroupCollection().findObject(msysName);
+
+            // создать операцию
+            nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "MILL_USER",
+                    OperationCollection.UseDefaultName.FALSE, operName);
+
+            // создать объект строитель nx- объектов
+            nxopen.cam.MillUserDefined millUserDefined = (nxopen.cam.MillUserDefined) operation;
+            nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
+
+            //Установть имя системной переменной и применить изменения
+            builder.setEnvVarName("HyperMill");
+            builder.commit();
+
+            //генерировать траекторию
+            nxopen.NXObject nXObject = builder.commit();
+            nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
+            nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined) nXObject);
+            objects[0] = millUserDefined2;
+            setup.generateToolPath(objects);
+
+            //Удалить построитель объектов
+            builder.destroy();
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе exportOperation!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе exportOperation!!!", e);
+        }
+    }
+
+    private void setSpeedAndFeed(String progName, int spindleSpeed, int feed) {
+        //установить подачу и скорость шпинделя на операцтю
+
+        try {
+            Nx nx = new Nx();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
+
+            nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
+            nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined) setup.camoperationCollection().findObject(progName.toUpperCase()));
+            objects[0] = millUserDefined;
+            nxopen.cam.ObjectsFeedsBuilder builder;
+            builder = setup.createFeedsBuilder(objects);
+
+            builder.feedsBuilder().spindleRpmBuilder().setValue(spindleSpeed);
+            builder.feedsBuilder().feedCutBuilder().setValue(feed);
+            builder.feedsBuilder().recalculateData(nxopen.cam.FeedsBuilder.RecalcuateBasedOn.CUT_FEED_RATE);
+
+            builder.commit();
+            builder.destroy();
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе setSpeedAndFeed!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе setSpeedAndFeed!!!", e);
+        }
+    }
+
 }
