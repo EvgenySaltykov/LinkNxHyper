@@ -9,6 +9,29 @@ import java.util.logging.Level;
 
 class Nx {
 
+    private nxopen.Session theSession;
+    private nxopen.Part workPart; // = workPart = theSession.parts().work();
+    private nxopen.cam.CAMSetup setup; // = workPart.camsetup();
+
+    Nx() {
+        try {
+            theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
+            workPart = theSession.parts().work();
+            setup = workPart.camsetup();
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в конструкторе класса Nx!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в конструкторе класса Nx!!!", e);
+        }
+
+    }
+
+    nxopen.Session getSession() {return this.theSession;}
+
+    nxopen.Part getWorkPart() {return this.workPart;}
+
+    nxopen.cam.CAMSetup getSetup() {return this.setup;}
+
     static String[] getListMembers(nxopen.cam.CAMObject[] rootMembers) {
         ArrayList<String> tempListMembers = new ArrayList<String>();
         String name;
@@ -30,10 +53,8 @@ class Nx {
             }
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  getListMembers!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  getListMembers!!!", e);
-            e.printStackTrace();
         }
 
         String[] listMembers = new String[tempListMembers.size()];

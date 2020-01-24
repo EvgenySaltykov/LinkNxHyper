@@ -33,10 +33,13 @@ class PrintLog {
             e.printStackTrace();
         }
 
-        logger.log(level, message);
+        System.err.println("\n" + "# log");
+        logger.log(level, message.concat("\n"));
+        System.err.println("#######################################");
+        System.err.println("");
     }
 
-    PrintLog(Level level, String message, Exception event) {
+    PrintLog(Level level, String message, Throwable event) {
         //вывод в файл лога с исключением
         try {
             if (file == null) {
@@ -54,8 +57,12 @@ class PrintLog {
             e.printStackTrace();
         }
 
-        logger.log(level, message);
-        event.printStackTrace();
+        System.err.println("\n" + "# log");
+        logger.log(level, message.concat("\n"));
+        System.err.println("# fillInStackTrace().printStackTrace()");
+        event.fillInStackTrace().printStackTrace();
+        System.err.println("#######################################");
+        System.err.println("");
     }
 
     static void closeLogFile() {

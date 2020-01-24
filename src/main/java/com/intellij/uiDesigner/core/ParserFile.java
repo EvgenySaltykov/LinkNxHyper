@@ -61,9 +61,9 @@ class ParserFile {
         createGroupProgram(groupProgramName);
 
         try {
-            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
-            nxopen.Part workPart = workPart = theSession.parts().work();
-            nxopen.cam.CAMSetup setup = workPart.camsetup();
+            Nx nx = new Nx();
+            nxopen.Part workPart = nx.getWorkPart();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
 
             nxopen.cam.NCGroup prog = setup.camgroupCollection().findObject(groupProgramName);
             nxopen.cam.Method method = (nxopen.cam.Method) setup.camgroupCollection().findObject("METHOD");
@@ -89,10 +89,8 @@ class ParserFile {
 
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createOperation!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createOperation!!!", e);
-            e.printStackTrace();
         }
 
 
@@ -170,9 +168,9 @@ class ParserFile {
         boolean isEmptyProgram = true;
 
         try {
-            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
-            nxopen.Part workPart = theSession.parts().work();
-            nxopen.cam.CAMSetup setup = workPart.camsetup();
+            Nx nx = new Nx();
+            nxopen.Part workPart = nx.getWorkPart();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
 
             nxopen.cam.NCGroup programRoot = setup.getRoot(CAMSetup.View.PROGRAM_ORDER);
             nxopen.cam.CAMObject[] programRootMembers = programRoot.getMembers();
@@ -194,10 +192,8 @@ class ParserFile {
             }
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createGroupProgram!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createGroupProgram!!!", e);
-            e.printStackTrace();
         }
     }
 }

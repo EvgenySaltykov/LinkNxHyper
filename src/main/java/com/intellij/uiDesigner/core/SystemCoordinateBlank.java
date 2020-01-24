@@ -61,9 +61,9 @@ class SystemCoordinateBlank {
         boolean isEmptyMSYS = true;
 
         try {
-            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
-            nxopen.Part workPart = theSession.parts().work();
-            nxopen.cam.CAMSetup setup = workPart.camsetup();
+            Nx nx = new Nx();
+            nxopen.Part workPart = nx.getWorkPart();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
 
             nxopen.cam.NCGroup geometryRoot = setup.getRoot(CAMSetup.View.GEOMETRY);
             String parentGeometry = geometryRoot.name();
@@ -101,10 +101,8 @@ class SystemCoordinateBlank {
             }
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createSysInNx!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createSysInNx!!!", e);
-            e.printStackTrace();
         }
     }
 

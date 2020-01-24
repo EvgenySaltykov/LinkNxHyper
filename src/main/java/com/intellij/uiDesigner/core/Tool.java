@@ -230,9 +230,8 @@ class Tool {
 
     private void createTool() {
         try {
-            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
-            nxopen.Part workPart = theSession.parts().work();
-            nxopen.cam.CAMSetup setup = workPart.camsetup();
+            Nx nx = new Nx();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
 
             nxopen.cam.NCGroup machineRoot = setup.getRoot(CAMSetup.View.MACHINE_TOOL);
             nxopen.cam.CAMObject[] machineRootMembers = machineRoot.getMembers();
@@ -258,10 +257,8 @@ class Tool {
 
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createTool()!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createTool()!!!", e);
-            e.printStackTrace();
         }
     }
 
@@ -283,10 +280,8 @@ class Tool {
 
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  getToolList!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  getToolList!!!", e);
-            e.printStackTrace();
         }
 
         if (tempListTool.size() > 0) {
@@ -351,10 +346,8 @@ class Tool {
             toolBuilder.destroy();
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createBallMill!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createBallMill!!!", e);
-            e.printStackTrace();
         }
     }
 
@@ -399,10 +392,8 @@ class Tool {
             toolBuilder.destroy();
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createEndMill!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createEndMill!!!", e);
-            e.printStackTrace();
         }
     }
 

@@ -37,13 +37,7 @@ public class MainForm extends JFrame {
         return BaseSession.LibraryUnloadOption.EXPLICITLY;
     }
 
-    public static void main(String[] args) throws NXException, RemoteException {
-//        nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
-//        lw = theSession.listingWindow();
-//        lw.open();
-//        lw.writeLine("");
-//        lw.writeLine("!!! Hello World !!!");
-//        lw.writeLine("");
+    public static void main(String[] args) {
 
         //Создать форму для диалога с пользователем
         new MainForm().createForm();
@@ -262,14 +256,13 @@ public class MainForm extends JFrame {
 
     private void updateSession() {
         try {
-            nxopen.Session theSession = (nxopen.Session) nxopen.SessionFactory.get("Session");
+            Nx nx = new Nx();
+            nxopen.Session theSession = nx.getSession();
             theSession.applicationSwitchImmediate("UG_APP_MANUFACTURING");
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе updateSession!!!", e);
-            e.printStackTrace();
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteExceptionв методе updateSession!!!", e);
-            e.printStackTrace();
         }
     }
 
