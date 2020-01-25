@@ -26,11 +26,17 @@ class Nx {
 
     }
 
-    nxopen.Session getSession() {return this.theSession;}
+    nxopen.Session getSession() {
+        return this.theSession;
+    }
 
-    nxopen.Part getWorkPart() {return this.workPart;}
+    nxopen.Part getWorkPart() {
+        return this.workPart;
+    }
 
-    nxopen.cam.CAMSetup getSetup() {return this.setup;}
+    nxopen.cam.CAMSetup getSetup() {
+        return this.setup;
+    }
 
     static String[] getListMembers(nxopen.cam.CAMObject[] rootMembers) {
         ArrayList<String> tempListMembers = new ArrayList<String>();
@@ -60,5 +66,16 @@ class Nx {
         String[] listMembers = new String[tempListMembers.size()];
         tempListMembers.toArray(listMembers);
         return listMembers;
+    }
+
+    static boolean isEmptyName(String nameMember, nxopen.cam.CAMObject[] rootMembers) {
+        String[] listProgram = getListMembers(rootMembers);
+        for (String name : listProgram) {
+            if (name.equals(nameMember.toUpperCase())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

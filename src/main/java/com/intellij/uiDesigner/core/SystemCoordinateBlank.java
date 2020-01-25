@@ -58,8 +58,6 @@ class SystemCoordinateBlank {
     }
 
     private void createSysInNx(double[] sys) {
-        boolean isEmptyMSYS = true;
-
         try {
             Nx nx = new Nx();
             nxopen.Part workPart = nx.getWorkPart();
@@ -69,14 +67,7 @@ class SystemCoordinateBlank {
             String parentGeometry = geometryRoot.name();
             nxopen.cam.CAMObject[] geometryRootMembers = geometryRoot.getMembers();
 
-            String[] listGeometryMembers = Nx.getListMembers(geometryRootMembers);
-            for (String name : listGeometryMembers) {
-                if (name.equals(mSysName.toUpperCase())) {
-                    isEmptyMSYS = false;
-                }
-            }
-
-            if (isEmptyMSYS) { // если имя СКС не создано
+            if (Nx.isEmptyName(mSysName, geometryRootMembers)) { // если имя СКС не создано
                 nxopen.cam.NCGroup nCGroup1 = (setup.camgroupCollection().findObject(parentGeometry));
                 nxopen.cam.NCGroup nCGroup2;
                 nCGroup2 = setup.camgroupCollection().createGeometry(nCGroup1, "mill_planar", "MCS", NCGroupCollection.UseDefaultName.FALSE, mSysName);
