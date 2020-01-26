@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 class Feed {
     private File file;
-    private int feed = -1;
+    private static int feed = -1;
 
     Feed(File file) {
         this.file = file;
@@ -41,7 +41,7 @@ class Feed {
         return Integer.parseInt(outString.toString());
     }
 
-    int getFeed() {
+    static int getFeed() {
         return feed;
     }
 }
