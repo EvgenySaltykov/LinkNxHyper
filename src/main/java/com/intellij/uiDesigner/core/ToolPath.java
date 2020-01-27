@@ -127,6 +127,7 @@ public class ToolPath {
                 b = reader.read();
                 if (b == 58) {//:
                     reader.skip(2l);//пропустить 2 байта " o"
+                    
                     b = reader.read();
                     if (b == 77 || b == 76) {//если 'M' или 'L'
                         //получить массивы байт X-Y-Z-U-V-W
