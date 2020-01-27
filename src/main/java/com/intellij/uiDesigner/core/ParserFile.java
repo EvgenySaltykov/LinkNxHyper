@@ -32,8 +32,8 @@ class ParserFile {
             exportOperation(fileIn);
 
             //записать GOTO
-                writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
-                new MoveParam(fileIn, writerBuffer);
+//                writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
+//                new ToolPath(fileIn, writerBuffer);
 //                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
 //                writerBuffer.close();
         }
@@ -41,6 +41,7 @@ class ParserFile {
 //            writerFile.close();
 
         long end = new Date().getTime();
+        JOptionPane.showMessageDialog(null, "время просчета " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
         System.out.println("время на операцию = " + (end - start));
     }
 
@@ -169,7 +170,7 @@ class ParserFile {
 
             //записать GOTO
             writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
-            new MoveParam(fileIn, writerBuffer);
+            new ToolPath(fileIn, writerBuffer);
 //                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
 //                writerBuffer.close();
 //        }
