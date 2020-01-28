@@ -42,7 +42,6 @@ class ParserFile {
 
         long end = new Date().getTime();
         JOptionPane.showMessageDialog(null, "время просчета " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
-        System.out.println("время на операцию = " + (end - start));
     }
 
     private void exportOperation(File fileIn) {
@@ -170,7 +169,7 @@ class ParserFile {
 
             //записать GOTO
             writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
-            new ToolPath(fileIn, writerBuffer);
+            new ToolPath(fileIn);
 //                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
 //                writerBuffer.close();
 //        }

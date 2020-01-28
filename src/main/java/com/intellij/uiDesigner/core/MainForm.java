@@ -156,7 +156,6 @@ public class MainForm extends JFrame {
                             PrintLog.closeLogFile(); //закрыть файл log.txt
                             fr.setVisible(false);
                             fr.dispose();   //закрыть программу
-                            updateSession(); //обновить сессию, чтобы появились операции в окне NX
                         } else {
                             //если отсутствуют pof-файлы показать диалоговое окно с ошибкой
                             JOptionPane.showMessageDialog(null, "В директории pof-файлы не найдены!", "", JOptionPane.WARNING_MESSAGE);
@@ -169,6 +168,8 @@ public class MainForm extends JFrame {
                     //Добавить диалоговое необходимо указать путь к директории POV-файлов
 //                    System.out.println("ERROR");
                     JOptionPane.showMessageDialog(null, "Укажите путь к директории!", "", JOptionPane.WARNING_MESSAGE);
+                } finally {
+                    updateSession(); //обновить сессию, чтобы появились операции в окне NX
                 }
             }
         });

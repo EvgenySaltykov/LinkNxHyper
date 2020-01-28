@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class ToolPath {
 //        String s = String.valueOf((char) b);
@@ -17,37 +16,43 @@ public class ToolPath {
     private File fileIn;
     private ByteArrayInputStream reader;
     private ByteArrayOutputStream writer;
-    private static boolean isFirstRapid = false;//флаг что первого движение еще не было. Первое <<<oM[1]( z[/100] )>>> -не обрабатывать
     private static double feed = -1.0;//значение подачи, если "-1", тогда RAPID
     private static double prevFeed = 0.0;//последнее выведенное значение подачи
     private Map<Items, ByteArrayOutputStream> map;
+    private double[] pointVector = new double[6];
 
-    ToolPath(File fileIn, ByteArrayOutputStream writer) {
+    ToolPath(File fileIn) {
         this.fileIn = fileIn;
         this.writer = writer;
 
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
 
-        createToolPath();
+        writeMove();
     }
 
-    private void createToolPath() {
+    private void writeMove() {
         try {
             reader = new ByteArrayInputStream(new Fis(fileIn).readAllBytes());
 
+//            int i = 0;
+//            long start = new Date().getTime();
+
             while ((b = reader.read()) >= 0) {
                 getFeed(b);
-
                 getGoto(b);
-//                    getItemsGoto(b, map);
-
-//                    createMoveToPoint(feed, map);
+//                i++;
+//                if (i == 10000) {
+//                    i = 0;
+//                    long end = new Date().getTime();
+//                    JOptionPane.showMessageDialog(null, "время траектории " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
+//                    start = new Date().getTime();
+//                }
             }
 
             reader.close();
 
         } catch (IOException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка IOException в методе  createToolPath!!!", e);
+            e.printStackTrace();
         }
     }
 
@@ -59,6 +64,21 @@ public class ToolPath {
         for (Items i : items) {
             map.put(i, new ByteArrayOutputStream());
         }
+
+        try {
+            if (map.get(Items.OldX).size() == 0) map.get(Items.OldX).write("0.0".getBytes());
+            if (map.get(Items.OldY).size() == 0) map.get(Items.OldY).write("0.0".getBytes());
+            if (map.get(Items.OldZ).size() == 0) map.get(Items.OldZ).write("0.0".getBytes());
+            if (map.get(Items.U).size() == 0) map.get(Items.U).write("0.0".getBytes());
+            if (map.get(Items.OldU).size() == 0) map.get(Items.OldU).write("0.0".getBytes());
+            if (map.get(Items.V).size() == 0) map.get(Items.V).write("0.0".getBytes());
+            if (map.get(Items.OldV).size() == 0) map.get(Items.OldV).write("0.0".getBytes());
+            if (map.get(Items.W).size() == 0) map.get(Items.W).write("1.0".getBytes());
+            if (map.get(Items.OldW).size() == 0) map.get(Items.OldW).write("1.0".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         return map;
     }
@@ -99,7 +119,7 @@ public class ToolPath {
                                     if (b == 88) {//"X"
                                         b = reader.read();
                                         if (b == 42) {//"*"
-                                            ByteArrayOutputStream writer = new ByteArrayOutputStream();
+                                            writer = new ByteArrayOutputStream();
 
                                             while ((b = reader.read()) != 41) {//читать до ")" конца числа
                                                 writer.write(b);
@@ -120,7 +140,6 @@ public class ToolPath {
     }
 
     private void getGoto(int b) {
-        //получить массивы байт X-Y-Z-U-V-W
         if (b == 51) {//3
             b = reader.read();
             if (b == 49) {//1
@@ -129,39 +148,46 @@ public class ToolPath {
                     reader.skip(2l);//пропустить 2 байта " o"
                     b = reader.read();
                     if (b == 77 || b == 76) {//если 'M' или 'L'
-                        //получить массивы байт X-Y-Z-U-V-W
-                        if (b == 77) feed = -1.0; //если 'M' то подача RAPID
+
+                        if (b == 77) feed = -1.0;
 
                         reader.skip(5l);//пропустить минимум 5 байт "[1]( "
 
                         while ((b = reader.read()) != 13) {//читать до конца строки
-                            try {
-                                if (b == 120) {//если есть x
-                                    map.get(Items.OldX).reset();
-                                    getItem(Items.X);
-                                    map.get(Items.OldX).write(map.get(Items.X).toByteArray());
-                                } else if (b == 121) {//если есть y
-                                    map.get(Items.OldY).reset();
-                                    getItem(Items.Y);
-                                    map.get(Items.OldY).write(map.get(Items.Y).toByteArray());
-                                } else if (b == 122) {//если есть z
-                                    map.get(Items.OldZ).reset();
-                                    getItem(Items.Z);
-                                    map.get(Items.OldZ).write(map.get(Items.Z).toByteArray());
-                                } else if (b == 117) {//если есть z
-                                    getItem(Items.U);
-                                } else if (b == 118) {//если есть z
-                                    getItem(Items.V);
-                                } else if (b == 119) {//если есть z
-                                    getItem(Items.W);
-                                }
-                            } catch (IOException e) {
-                                new PrintLog(Level.WARNING, "!!!Ошибка IOException в методе  getGoto!!!", e);
-                            }
+                            getItems(b);
                         }
+
+                        getParseArrayDouble(map);
                     }
                 }
             }
+        }
+    }
+
+    private void getItems(int b) {
+        //получить массивы байт X-Y-Z-U-V-W
+        try {
+            if (b == 120) {//если есть x
+                map.get(Items.OldX).reset();
+                getItem(Items.X);
+                map.get(Items.OldX).write(map.get(Items.X).toByteArray());
+            } else if (b == 121) {//если есть y
+                map.get(Items.OldY).reset();
+                getItem(Items.Y);
+                map.get(Items.OldY).write(map.get(Items.Y).toByteArray());
+            } else if (b == 122) {//если есть z
+                map.get(Items.OldZ).reset();
+                getItem(Items.Z);
+                map.get(Items.OldZ).write(map.get(Items.Z).toByteArray());
+            } else if (b == 117) {//если есть z
+                getItem(Items.U);
+            } else if (b == 118) {//если есть z
+                getItem(Items.V);
+            } else if (b == 119) {//если есть z
+                getItem(Items.W);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -172,6 +198,35 @@ public class ToolPath {
         while ((b = reader.read()) != 93) {//]
             map.get(item).write(b);
         }
+    }
+
+    private void getParseArrayDouble(Map<Items, ByteArrayOutputStream> map) {
+
+            if (map.get(Items.X).size() != 0) {
+                pointVector[0] = Double.parseDouble(map.get(Items.X).toString());
+            }
+            if (map.get(Items.Y).size() != 0) {
+                pointVector[1] = Double.parseDouble(map.get(Items.Y).toString());
+            }
+            if (map.get(Items.Z).size() != 0) {
+                pointVector[2] = Double.parseDouble(map.get(Items.Z).toString());
+            }
+            if (map.get(Items.U).size() != 0) {
+                pointVector[3] = Double.parseDouble(map.get(Items.U).toString());
+            }
+            if (map.get(Items.V).size() != 0) {
+                pointVector[4] = Double.parseDouble(map.get(Items.V).toString());
+            }
+            if (map.get(Items.W).size() != 0) {
+                pointVector[5] = Double.parseDouble(map.get(Items.W).toString());
+            }
+
+            map.get(Items.X).reset();
+            map.get(Items.Y).reset();
+            map.get(Items.Z).reset();
+            map.get(Items.U).reset();
+            map.get(Items.V).reset();
+            map.get(Items.W).reset();
     }
 
     private void createMoveToPoint(double feed, Map<Items, ByteArrayOutputStream> map) {
