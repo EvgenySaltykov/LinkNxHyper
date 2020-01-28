@@ -65,19 +65,19 @@ public class ToolPath {
             map.put(i, new ByteArrayOutputStream());
         }
 
-        try {
-            if (map.get(Items.OldX).size() == 0) map.get(Items.OldX).write("0.0".getBytes());
-            if (map.get(Items.OldY).size() == 0) map.get(Items.OldY).write("0.0".getBytes());
-            if (map.get(Items.OldZ).size() == 0) map.get(Items.OldZ).write("0.0".getBytes());
-            if (map.get(Items.U).size() == 0) map.get(Items.U).write("0.0".getBytes());
-            if (map.get(Items.OldU).size() == 0) map.get(Items.OldU).write("0.0".getBytes());
-            if (map.get(Items.V).size() == 0) map.get(Items.V).write("0.0".getBytes());
-            if (map.get(Items.OldV).size() == 0) map.get(Items.OldV).write("0.0".getBytes());
-            if (map.get(Items.W).size() == 0) map.get(Items.W).write("1.0".getBytes());
-            if (map.get(Items.OldW).size() == 0) map.get(Items.OldW).write("1.0".getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            if (map.get(Items.OldX).size() == 0) map.get(Items.OldX).write("0.0".getBytes());
+//            if (map.get(Items.OldY).size() == 0) map.get(Items.OldY).write("0.0".getBytes());
+//            if (map.get(Items.OldZ).size() == 0) map.get(Items.OldZ).write("0.0".getBytes());
+//            if (map.get(Items.U).size() == 0) map.get(Items.U).write("0.0".getBytes());
+//            if (map.get(Items.OldU).size() == 0) map.get(Items.OldU).write("0.0".getBytes());
+//            if (map.get(Items.V).size() == 0) map.get(Items.V).write("0.0".getBytes());
+//            if (map.get(Items.OldV).size() == 0) map.get(Items.OldV).write("0.0".getBytes());
+//            if (map.get(Items.W).size() == 0) map.get(Items.W).write("1.0".getBytes());
+//            if (map.get(Items.OldW).size() == 0) map.get(Items.OldW).write("1.0".getBytes());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 
         return map;
