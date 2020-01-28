@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class ToolPath {
 //        String s = String.valueOf((char) b);
@@ -65,20 +66,13 @@ public class ToolPath {
             map.put(i, new ByteArrayOutputStream());
         }
 
-//        try {
-//            if (map.get(Items.OldX).size() == 0) map.get(Items.OldX).write("0.0".getBytes());
-//            if (map.get(Items.OldY).size() == 0) map.get(Items.OldY).write("0.0".getBytes());
-//            if (map.get(Items.OldZ).size() == 0) map.get(Items.OldZ).write("0.0".getBytes());
-//            if (map.get(Items.U).size() == 0) map.get(Items.U).write("0.0".getBytes());
-//            if (map.get(Items.OldU).size() == 0) map.get(Items.OldU).write("0.0".getBytes());
-//            if (map.get(Items.V).size() == 0) map.get(Items.V).write("0.0".getBytes());
-//            if (map.get(Items.OldV).size() == 0) map.get(Items.OldV).write("0.0".getBytes());
-//            if (map.get(Items.W).size() == 0) map.get(Items.W).write("1.0".getBytes());
-//            if (map.get(Items.OldW).size() == 0) map.get(Items.OldW).write("1.0".getBytes());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+        try {// вектор по умолчанию
+            map.get(Items.U).write("0.0".getBytes());
+            map.get(Items.V).write("0.0".getBytes());
+            map.get(Items.W).write("1.0".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return map;
     }
@@ -202,6 +196,8 @@ public class ToolPath {
 
     private void getParseArrayDouble(Map<Items, ByteArrayOutputStream> map) {
 
+        try {
+
             if (map.get(Items.X).size() != 0) {
                 pointVector[0] = Double.parseDouble(map.get(Items.X).toString());
             }
@@ -220,13 +216,16 @@ public class ToolPath {
             if (map.get(Items.W).size() != 0) {
                 pointVector[5] = Double.parseDouble(map.get(Items.W).toString());
             }
+        }catch (IllegalArgumentException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка IllegalArgumentException в методе getParseArrayDouble!!!", e);
+        }
 
-            map.get(Items.X).reset();
-            map.get(Items.Y).reset();
-            map.get(Items.Z).reset();
-            map.get(Items.U).reset();
-            map.get(Items.V).reset();
-            map.get(Items.W).reset();
+        map.get(Items.X).reset();
+        map.get(Items.Y).reset();
+        map.get(Items.Z).reset();
+        map.get(Items.U).reset();
+        map.get(Items.V).reset();
+        map.get(Items.W).reset();
     }
 
     private void createMoveToPoint(double feed, Map<Items, ByteArrayOutputStream> map) {
