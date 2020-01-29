@@ -60,7 +60,7 @@ class ParserFile {
 
         setSpeedAndFeedForOperation(operName, spindleSpeed, feed);
 
-        createMove(fileIn);
+        createMove(fileIn, operName);
     }
 
     private void createGroupProgram(String groupProgramName) {
@@ -164,12 +164,12 @@ class ParserFile {
         }
     }
 
-    private void createMove(File fileIn) {
+    private void createMove(File fileIn, String operName) {
         ByteArrayOutputStream writerBuffer;
 
             //записать GOTO
             writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
-            new ToolPath(fileIn);
+            new ToolPath(fileIn, operName);
 //                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
 //                writerBuffer.close();
 //        }

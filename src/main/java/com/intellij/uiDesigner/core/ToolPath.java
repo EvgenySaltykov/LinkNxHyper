@@ -1,9 +1,13 @@
 package com.intellij.uiDesigner.core;
 
+import nxopen.NXException;
+import nxopen.cam.MillUserDefined;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -21,9 +25,11 @@ public class ToolPath {
     private static double prevFeed = 0.0;//последнее выведенное значение подачи
     private Map<Items, ByteArrayOutputStream> map;
     private double[] pointVector = new double[6];
+    private String operName = "";
 
-    ToolPath(File fileIn) {
+    ToolPath(File fileIn, String operName) {
         this.fileIn = fileIn;
+        this.operName = operName;
 
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
 
@@ -149,10 +155,7 @@ public class ToolPath {
                         }
 
                         getParseArrayDouble(map);
-
-                        if (!isEmptyFirstPoint(pointVector)) {
-                            movePoint();
-                        }
+                        movePoint(pointVector, feed, operName);
                     }
                 }
             }
@@ -233,9 +236,47 @@ public class ToolPath {
         return true;
     }
 
-    private void movePoint() {
-        
-        boolean t = true;
+    private void movePoint(double[] pointVector, double feed, String operName) {
+        if (isEmptyFirstPoint(pointVector)) return; //если 3 координаты не найдены не выполнять тело метода
+        // //////////////////////////////////////////////////////////////////////////////////////////////////
+
+        try {
+            Nx nx = new Nx();
+            nxopen.Part workPart =nx.getWorkPart();
+            nxopen.cam.CAMSetup setup = nx.getSetup();
+
+            nxopen.cam.MillUserDefined millUserDefined = (MillUserDefined) setup.camoperationCollection().findObject(operName);
+
+            nxopen.Point3d point3d = new nxopen.Point3d(pointVector[0], pointVector[1],pointVector[2]);
+            nxopen.Point point = workPart.points().createPoint(point3d);
+
+            nxopen.cam.MoveToPointBuilder moveBuilder = millUserDefined.cammoveCollection().createMoveToPointBuilder(null);
+            moveBuilder.setPoint(point);
+
+            moveBuilder.commit();
+            moveBuilder.destroy();
+//            builder.destroy();
+//            toolPathBuilder.destroy();
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе movePoint!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе movePoint!!!", e);
+        } catch (Throwable e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка Throwable в методе movePoint!!!", e);
+        }
     }
+
+//    private void updatingSession() {
+//        try {
+//            Nx nx = new Nx();
+//            nxopen.Session theSession = nx.getSession();
+//            theSession.applicationSwitchImmediate("UG_APP_MANUFACTURING");
+//        } catch (NXException e) {
+//            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе updatingSession!!!", e);
+//        } catch (RemoteException e) {
+//            new PrintLog(Level.WARNING, "!!!Ошибка RemoteExceptionв методе updatingSession!!!", e);
+//        }
+//    }
 
 }
