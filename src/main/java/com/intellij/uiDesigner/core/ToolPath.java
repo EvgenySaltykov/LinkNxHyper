@@ -24,7 +24,6 @@ public class ToolPath {
 
     ToolPath(File fileIn) {
         this.fileIn = fileIn;
-        this.writer = writer;
 
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
 
@@ -40,7 +39,7 @@ public class ToolPath {
 
             while ((b = reader.read()) >= 0) {
                 getFeed(b);
-                getGoto(b);
+                createMoveToPoint(b);
 //                i++;
 //                if (i == 10000) {
 //                    i = 0;
@@ -53,7 +52,7 @@ public class ToolPath {
             reader.close();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка IOException в методе writeMove!!!", e);
         }
     }
 
@@ -67,11 +66,14 @@ public class ToolPath {
         }
 
         try {// вектор по умолчанию
+            map.get(Items.X).write(String.valueOf(Double.MIN_VALUE).getBytes());
+            map.get(Items.Y).write(String.valueOf(Double.MIN_VALUE).getBytes());
+            map.get(Items.Z).write(String.valueOf(Double.MIN_VALUE).getBytes());
             map.get(Items.U).write("0.0".getBytes());
             map.get(Items.V).write("0.0".getBytes());
             map.get(Items.W).write("1.0".getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка IOException в методе getMap!!!", e);
         }
 
         return map;
@@ -83,13 +85,7 @@ public class ToolPath {
         Z,
         U,
         V,
-        W,
-        OldX,
-        OldY,
-        OldZ,
-        OldU,
-        OldV,
-        OldW
+        W
     }
 
     private void getFeed(int b) {
@@ -122,6 +118,7 @@ public class ToolPath {
                                             double k = Double.parseDouble(writer.toString());
 
                                             feed = Math.round(Feed.getFeed() * k);
+                                            if (feed < 1.0) feed = 1.0;
                                         }
                                     }
                                 }
@@ -133,7 +130,7 @@ public class ToolPath {
         }
     }
 
-    private void getGoto(int b) {
+    private void createMoveToPoint(int b) {
         if (b == 51) {//3
             b = reader.read();
             if (b == 49) {//1
@@ -152,6 +149,10 @@ public class ToolPath {
                         }
 
                         getParseArrayDouble(map);
+
+                        if (!isEmptyFirstPoint(pointVector)) {
+                            movePoint();
+                        }
                     }
                 }
             }
@@ -160,28 +161,24 @@ public class ToolPath {
 
     private void getItems(int b) {
         //получить массивы байт X-Y-Z-U-V-W
-        try {
-            if (b == 120) {//если есть x
-                map.get(Items.OldX).reset();
-                getItem(Items.X);
-                map.get(Items.OldX).write(map.get(Items.X).toByteArray());
-            } else if (b == 121) {//если есть y
-                map.get(Items.OldY).reset();
-                getItem(Items.Y);
-                map.get(Items.OldY).write(map.get(Items.Y).toByteArray());
-            } else if (b == 122) {//если есть z
-                map.get(Items.OldZ).reset();
-                getItem(Items.Z);
-                map.get(Items.OldZ).write(map.get(Items.Z).toByteArray());
-            } else if (b == 117) {//если есть z
-                getItem(Items.U);
-            } else if (b == 118) {//если есть z
-                getItem(Items.V);
-            } else if (b == 119) {//если есть z
-                getItem(Items.W);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (b == 120) {//если есть x
+            map.get(Items.X).reset();
+            getItem(Items.X);
+        } else if (b == 121) {//если есть y
+            map.get(Items.Y).reset();
+            getItem(Items.Y);
+        } else if (b == 122) {//если есть z
+            map.get(Items.Z).reset();
+            getItem(Items.Z);
+        } else if (b == 117) {//если есть u
+            map.get(Items.U).reset();
+            getItem(Items.U);
+        } else if (b == 118) {//если есть v
+            map.get(Items.V).reset();
+            getItem(Items.V);
+        } else if (b == 119) {//если есть w
+            map.get(Items.W).reset();
+            getItem(Items.W);
         }
     }
 
@@ -216,19 +213,28 @@ public class ToolPath {
             if (map.get(Items.W).size() != 0) {
                 pointVector[5] = Double.parseDouble(map.get(Items.W).toString());
             }
-        }catch (IllegalArgumentException e) {
+
+        } catch (IllegalArgumentException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка IllegalArgumentException в методе getParseArrayDouble!!!", e);
         }
-
-        map.get(Items.X).reset();
-        map.get(Items.Y).reset();
-        map.get(Items.Z).reset();
-        map.get(Items.U).reset();
-        map.get(Items.V).reset();
-        map.get(Items.W).reset();
     }
 
-    private void createMoveToPoint(double feed, Map<Items, ByteArrayOutputStream> map) {
+    private boolean isEmptyFirstPoint(double[] pointVector) {
+        //проверить что первая точка получила координаты x, y, z
 
+        for (int i = 0; i < 3; i++) {
+            if (pointVector[i] == Double.MIN_VALUE) {
+                break;
+            } else {
+                return false;
+            }
+        }
+
+        return true;
     }
+
+    private void movePoint() {
+        boolean t = true;
+    }
+
 }
