@@ -1,7 +1,7 @@
 package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
-import nxopen.cam.MillUserDefined;
+import nxopen.cam.MoveBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,9 +13,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class ToolPath {
-//        String s = String.valueOf((char) b);
-//        byte[] d = "]".getBytes();
-//        System.out.println("");
 
     private int b;//прочитанный байт
     private File fileIn;
@@ -26,12 +23,20 @@ public class ToolPath {
     private Map<Items, ByteArrayOutputStream> map;
     private double[] pointVector = new double[6];
     private String operName = "";
+// переменные NX
+    private Nx nx;
+    private nxopen.Part workPart;
+    private nxopen.cam.CAMSetup setup;
+    private nxopen.cam.GenericMotionControl genericMotionControl;
+    private nxopen.cam.Move nullNXOpen_CAM_Move = null;
 
     ToolPath(File fileIn, String operName) {
         this.fileIn = fileIn;
         this.operName = operName;
 
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
+
+        intitBuilderParameters(); //создать построители объектов в Nx
 
         writeMove();
     }
@@ -236,47 +241,50 @@ public class ToolPath {
         return true;
     }
 
+    private void intitBuilderParameters() {
+        //создать построители объектов в Nx
+
+        nx = new Nx();
+        workPart =nx.getWorkPart();
+        setup = nx.getSetup();
+
+        try {
+            genericMotionControl = ((nxopen.cam.GenericMotionControl)setup.camoperationCollection().findObject(operName.toUpperCase()));
+
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе intitBuilderParameters!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе intitBuilderParameters!!!", e);
+        }
+    }
+
     private void movePoint(double[] pointVector, double feed, String operName) {
         if (isEmptyFirstPoint(pointVector)) return; //если 3 координаты не найдены не выполнять тело метода
         // //////////////////////////////////////////////////////////////////////////////////////////////////
 
         try {
-            Nx nx = new Nx();
-            nxopen.Part workPart =nx.getWorkPart();
-            nxopen.cam.CAMSetup setup = nx.getSetup();
-
-            nxopen.cam.MillUserDefined millUserDefined = (MillUserDefined) setup.camoperationCollection().findObject(operName);
-
             nxopen.Point3d point3d = new nxopen.Point3d(pointVector[0], pointVector[1],pointVector[2]);
             nxopen.Point point = workPart.points().createPoint(point3d);
+            nxopen.cam.MoveToPointBuilder moveToPointBuilder = genericMotionControl.cammoveCollection().createMoveToPointBuilder(nullNXOpen_CAM_Move);
+            moveToPointBuilder.setPoint(point);
 
-            nxopen.cam.MoveToPointBuilder moveBuilder = millUserDefined.cammoveCollection().createMoveToPointBuilder(null);
-            moveBuilder.setPoint(point);
+            moveToPointBuilder.setMotionType(MoveBuilder.Motion.CUT);
 
-            moveBuilder.commit();
-            moveBuilder.destroy();
-//            builder.destroy();
-//            toolPathBuilder.destroy();
+            nxopen.Point3d origin = new nxopen.Point3d(0, 0, 0);
+            nxopen.Vector3d vector3d = new nxopen.Vector3d(pointVector[3], pointVector[4],pointVector[5]);
+            nxopen.Direction direction = workPart.directions().createDirection(origin, vector3d,  nxopen.SmartObject.UpdateOption.AFTER_MODELING);
+            moveToPointBuilder.offsetData().setOffsetVector(direction);
+
+            nxopen.NXObject nXObject = moveToPointBuilder.commit();
+            nxopen.cam.ManualMove manualMove = ((nxopen.cam.ManualMove)nXObject);
+            genericMotionControl.appendMove(manualMove);
+
+            moveToPointBuilder.destroy();
 
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе movePoint!!!", e);
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе movePoint!!!", e);
-        } catch (Throwable e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка Throwable в методе movePoint!!!", e);
         }
     }
-
-//    private void updatingSession() {
-//        try {
-//            Nx nx = new Nx();
-//            nxopen.Session theSession = nx.getSession();
-//            theSession.applicationSwitchImmediate("UG_APP_MANUFACTURING");
-//        } catch (NXException e) {
-//            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе updatingSession!!!", e);
-//        } catch (RemoteException e) {
-//            new PrintLog(Level.WARNING, "!!!Ошибка RemoteExceptionв методе updatingSession!!!", e);
-//        }
-//    }
-
 }

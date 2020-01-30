@@ -105,22 +105,19 @@ class ParserFile {
                 nxopen.cam.OrientGeometry geometry = (nxopen.cam.OrientGeometry) setup.camgroupCollection().findObject(msysName);
 
                 // создать операцию
-                nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "MILL_USER",
+                nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "GENERIC_MOTION",
                         OperationCollection.UseDefaultName.FALSE, operName);
 
                 // создать объект строитель nx-объектов
-                nxopen.cam.MillUserDefined millUserDefined = (nxopen.cam.MillUserDefined) operation;
-                nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
-
-                //Установть имя системной переменной и применить изменения
-                builder.setEnvVarName("HyperMill");
-                builder.commit();
+                nxopen.cam.GenericMotionControl genericMotionControl = ((nxopen.cam.GenericMotionControl)operation);
+                nxopen.cam.GmcOpBuilder builder;
+                builder = setup.camoperationCollection().createGmcopBuilder(genericMotionControl);
 
                 //генерировать траекторию
                 nxopen.NXObject nXObject = builder.commit();
-                nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
-                nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined) nXObject);
-                objects[0] = millUserDefined2;
+                nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];;
+                nxopen.cam.GenericMotionControl genericMotionControl2 = ((nxopen.cam.GenericMotionControl)nXObject);
+                objects[0] = genericMotionControl2;
                 setup.generateToolPath(objects);
 
                 //Удалить построитель объектов
@@ -145,8 +142,8 @@ class ParserFile {
             nxopen.cam.CAMSetup setup = nx.getSetup();
 
             nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
-            nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined) setup.camoperationCollection().findObject(progName.toUpperCase()));
-            objects[0] = millUserDefined;
+            nxopen.cam.GenericMotionControl genericMotionControl = ((nxopen.cam.GenericMotionControl)setup.camoperationCollection().findObject(progName.toUpperCase()));
+            objects[0] = genericMotionControl;
             nxopen.cam.ObjectsFeedsBuilder builder;
             builder = setup.createFeedsBuilder(objects);
 
@@ -168,7 +165,7 @@ class ParserFile {
         ByteArrayOutputStream writerBuffer;
 
             //записать GOTO
-            writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
+//            writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
             new ToolPath(fileIn, operName);
 //                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
 //                writerBuffer.close();

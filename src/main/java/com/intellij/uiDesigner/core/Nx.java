@@ -78,4 +78,17 @@ class Nx {
 
         return true;
     }
+
+    static void updateSession() {
+        try {
+            Nx nx = new Nx();
+            nxopen.Session theSession = nx.getSession();
+            theSession.applicationSwitchImmediate("UG_APP_MANUFACTURING");
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе updateSession!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteExceptionв методе updateSession!!!", e);
+        }
+    }
+
 }
