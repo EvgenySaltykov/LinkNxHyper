@@ -263,6 +263,7 @@ public class ToolPath {
         // //////////////////////////////////////////////////////////////////////////////////////////////////
 
         try {
+            
             nxopen.Point3d point3d = new nxopen.Point3d(pointVector[0], pointVector[1],pointVector[2]);
             nxopen.Point point = workPart.points().createPoint(point3d);
             nxopen.cam.MoveToPointBuilder moveToPointBuilder = genericMotionControl.cammoveCollection().createMoveToPointBuilder(nullNXOpen_CAM_Move);
