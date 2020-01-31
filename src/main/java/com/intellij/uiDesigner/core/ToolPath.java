@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class ToolPath {
+    int i = 0;
+    long start = 0;
 
     private int b;//прочитанный байт
     private File fileIn;
@@ -29,6 +31,7 @@ public class ToolPath {
     private nxopen.cam.CAMSetup setup;
     private nxopen.cam.GenericMotionControl genericMotionControl;
     private nxopen.cam.Move nullNXOpen_CAM_Move = null;
+    private nxopen.cam.MoveToPointBuilder moveToPointBuilder;
 
     ToolPath(File fileIn, String operName) {
         this.fileIn = fileIn;
@@ -39,6 +42,16 @@ public class ToolPath {
         intitBuilderParameters(); //создать построители объектов в Nx
 
         writeMove();
+
+        try {
+            moveToPointBuilder.destroy();
+        } catch (NXException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        generateToolPath();
     }
 
     private void writeMove() {
@@ -263,29 +276,53 @@ public class ToolPath {
         // //////////////////////////////////////////////////////////////////////////////////////////////////
 
         try {
-            
+
             nxopen.Point3d point3d = new nxopen.Point3d(pointVector[0], pointVector[1],pointVector[2]);
             nxopen.Point point = workPart.points().createPoint(point3d);
-            nxopen.cam.MoveToPointBuilder moveToPointBuilder = genericMotionControl.cammoveCollection().createMoveToPointBuilder(nullNXOpen_CAM_Move);
-            moveToPointBuilder.setPoint(point);
+            moveToPointBuilder = genericMotionControl.cammoveCollection().createMoveToPointBuilder(nullNXOpen_CAM_Move);
 
+            moveToPointBuilder.setPoint(point); //15ms
             moveToPointBuilder.setMotionType(MoveBuilder.Motion.CUT);
 
             nxopen.Point3d origin = new nxopen.Point3d(0, 0, 0);
             nxopen.Vector3d vector3d = new nxopen.Vector3d(pointVector[3], pointVector[4],pointVector[5]);
-            nxopen.Direction direction = workPart.directions().createDirection(origin, vector3d,  nxopen.SmartObject.UpdateOption.AFTER_MODELING);
+            nxopen.Direction direction = workPart.directions().createDirection(origin, vector3d,  nxopen.SmartObject.UpdateOption.AFTER_MODELING);//15ms
+
+
             moveToPointBuilder.offsetData().setOffsetVector(direction);
 
-            nxopen.NXObject nXObject = moveToPointBuilder.commit();
+            nxopen.NXObject nXObject = moveToPointBuilder.commit();//15ms
             nxopen.cam.ManualMove manualMove = ((nxopen.cam.ManualMove)nXObject);
-            genericMotionControl.appendMove(manualMove);
 
-            moveToPointBuilder.destroy();
+//            if (i == 99) {
+//                start = new Date().getTime();
+//            }
+            genericMotionControl.appendMove(manualMove);//15ms
+//            if (i == 99) {
+//                long end = new Date().getTime();
+//                JOptionPane.showMessageDialog(null, "время просчета " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
+//                i = 0;
+//            } else {
+//                i++;
+//            }
+//            moveToPointBuilder.destroy();
 
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе movePoint!!!", e);
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе movePoint!!!", e);
+        }
+    }
+
+    private void generateToolPath() {
+        try {
+            nxopen.cam.CAMObject [] objects1  = new nxopen.cam.CAMObject[1];
+            objects1[0] = genericMotionControl;
+            setup.generateToolPath(objects1);
+        } catch (NXException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
     }
 }
