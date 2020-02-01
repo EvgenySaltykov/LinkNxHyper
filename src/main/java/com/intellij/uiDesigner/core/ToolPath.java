@@ -39,19 +39,19 @@ public class ToolPath {
 
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
 
-        intitBuilderParameters(); //создать построители объектов в Nx
-
-        writeMove();
-
-        try {
-            moveToPointBuilder.destroy();
-        } catch (NXException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        generateToolPath();
+////        intitBuilderParameters(); //создать построители объектов в Nx
+////
+////        writeMove();
+//
+//        try {
+//            moveToPointBuilder.destroy();
+//        } catch (NXException e) {
+//            e.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
+//
+//        generateToolPath();
     }
 
     private void writeMove() {

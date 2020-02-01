@@ -1,6 +1,8 @@
 package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
+import nxopen.SessionFactory;
+import nxopen.UI;
 import nxopen.cam.CAMSetup;
 import nxopen.cam.OperationCollection;
 
@@ -105,19 +107,19 @@ class ParserFile {
                 nxopen.cam.OrientGeometry geometry = (nxopen.cam.OrientGeometry) setup.camgroupCollection().findObject(msysName);
 
                 // создать операцию
-                nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "GENERIC_MOTION",
+                nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "MILL_USER",
                         OperationCollection.UseDefaultName.FALSE, operName);
 
                 // создать объект строитель nx-объектов
-                nxopen.cam.GenericMotionControl genericMotionControl = ((nxopen.cam.GenericMotionControl)operation);
-                nxopen.cam.GmcOpBuilder builder;
-                builder = setup.camoperationCollection().createGmcopBuilder(genericMotionControl);
+                nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined)operation);
+                nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
+                builder.setSelectToolFlag(true);
 
                 //генерировать траекторию
                 nxopen.NXObject nXObject = builder.commit();
-                nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];;
-                nxopen.cam.GenericMotionControl genericMotionControl2 = ((nxopen.cam.GenericMotionControl)nXObject);
-                objects[0] = genericMotionControl2;
+                nxopen.cam.CAMObject [] objects  = new nxopen.cam.CAMObject[1];
+                nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined)nXObject);
+                objects[0] = millUserDefined2;
                 setup.generateToolPath(objects);
 
                 //Удалить построитель объектов
@@ -140,12 +142,13 @@ class ParserFile {
         try {
             Nx nx = new Nx();
             nxopen.cam.CAMSetup setup = nx.getSetup();
+            UI theUI = (UI) SessionFactory.get("UI");
 
             nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
-            nxopen.cam.GenericMotionControl genericMotionControl = ((nxopen.cam.GenericMotionControl)setup.camoperationCollection().findObject(progName.toUpperCase()));
-            objects[0] = genericMotionControl;
-            nxopen.cam.ObjectsFeedsBuilder builder;
-            builder = setup.createFeedsBuilder(objects);
+
+            nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined)setup.camoperationCollection().findObject(progName.toUpperCase()));
+            objects[0] = millUserDefined;
+            nxopen.cam.ObjectsFeedsBuilder builder = setup.createFeedsBuilder(objects);
 
             builder.feedsBuilder().spindleRpmBuilder().setValue(spindleSpeed);
             builder.feedsBuilder().feedCutBuilder().setValue(feed);
@@ -153,7 +156,6 @@ class ParserFile {
 
             builder.commit();
             builder.destroy();
-
         } catch (NXException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе setSpeedAndFeed!!!", e);
         } catch (RemoteException e) {
