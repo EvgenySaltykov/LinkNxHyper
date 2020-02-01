@@ -39,6 +39,7 @@ public class ToolPath {
 
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
 
+        
 ////        intitBuilderParameters(); //создать построители объектов в Nx
 ////
 ////        writeMove();
