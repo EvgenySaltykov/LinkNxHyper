@@ -114,6 +114,7 @@ class ParserFile {
                 nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined)operation);
                 nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
                 builder.setSelectToolFlag(true);
+                builder.setEnvVarName("EXP_HYPER");
 
                 //генерировать траекторию
                 nxopen.NXObject nXObject = builder.commit();

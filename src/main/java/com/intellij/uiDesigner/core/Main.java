@@ -6,6 +6,7 @@ import nxopen.uf.UFUdop;
 import nxopen.uf.UFVariant;
 
 import java.rmi.RemoteException;
+import java.util.logging.Level;
 
 public class Main {
     public static nxopen.Session session;
@@ -27,11 +28,10 @@ public class Main {
             listingWindow = session.listingWindow();
             nxMessageBox = ui.nxmessageBox();
             workPart = session.parts().work();
-//        } catch (NXException | RemoteException e) {
         } catch (NXException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в static bloc класса Main!!!", e);
         } catch (RemoteException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в static bloc класса Main!!!", e);
         }
     }
 
@@ -62,7 +62,7 @@ public class Main {
 // ////////////////////////////////////////////////////////////
 
             if (purpose == UFUdop.Purpose.USER_PARAMS) {
-                nxMessageBox.show("User Params", NXMessageBox.DialogType.INFORMATION, "User Params");
+                nxMessageBox.show("User Params", NXMessageBox.DialogType.INFORMATION, "ну вот нафиг ты нажал на эту кнопку?");
             }
 
             if (purpose == UFUdop.Purpose.GENERATE) {
@@ -99,9 +99,9 @@ public class Main {
                 ufSession.path().endToolPath(pathPrt);
             }
         } catch (NXException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе udop!!!", e);
         } catch (RemoteException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе udop!!!", e);
         }
         return 0;
     }
