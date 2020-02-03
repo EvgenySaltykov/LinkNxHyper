@@ -1,7 +1,5 @@
 package com.intellij.uiDesigner.core;
 
-import nxopen.BaseSession;
-
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -31,17 +29,7 @@ public class MainForm extends JFrame {
     MainForm() {
     }
 
-    public static int getUnloadOption() {
-        return BaseSession.LibraryUnloadOption.EXPLICITLY;
-    }
-
-    public static void main(String[] args) {
-
-        //Создать форму для диалога с пользователем
-        new MainForm().createForm();
-    }
-
-    private JFrame createForm() {
+     JFrame createForm() {
         //описание формы и добавления на форму панели
         fr = new JFrame();
         $$$setupUI$$$();
@@ -67,8 +55,6 @@ public class MainForm extends JFrame {
     private void createAndAddInfoButton() {
         // бобавление кнопки ИНФО,т.к. через конструктор не подключить было иконку
         infoButton = new JButton();
-//        infoButton.setIcon(new ImageIcon("infoButton.png"));
-//        infoButton.setIcon(new ImageIcon(getCurrentPath("infoButton.png")));
         infoButton.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("infoButton.png"))));
         infoButton.setMargin(new Insets(0, 0, 0, 0));
         panel1.add(infoButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
