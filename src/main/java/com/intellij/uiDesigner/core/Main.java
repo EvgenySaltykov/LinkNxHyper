@@ -9,14 +9,14 @@ import java.rmi.RemoteException;
 import java.util.logging.Level;
 
 public class Main {
-    public static nxopen.Session session;
-    public static nxopen.UFSession ufSession;
-    public static nxopen.UI ui;
-    public static nxopen.cam.CAMSession camSession;
-    public static nxopen.RemoteUtilities rus;
-    public static ListingWindow listingWindow;
-    public static NXMessageBox nxMessageBox;
-    public static Part workPart;
+    private static nxopen.Session session;
+    private static nxopen.UFSession ufSession;
+    private static nxopen.UI ui;
+    private static nxopen.cam.CAMSession camSession;
+    private static nxopen.RemoteUtilities rus;
+    private static ListingWindow listingWindow;
+    private static NXMessageBox nxMessageBox;
+    private static Part workPart;
 
     static {
         try {
@@ -62,7 +62,7 @@ public class Main {
 // ////////////////////////////////////////////////////////////
 
             if (purpose == UFUdop.Purpose.USER_PARAMS) {
-                nxMessageBox.show("User Params", NXMessageBox.DialogType.INFORMATION, "ну вот нафиг ты нажал на эту кнопку?");
+                nxMessageBox.show("User Params", NXMessageBox.DialogType.INFORMATION, "ну вот зачем ты нажал на эту кнопку?");
             }
 
             if (purpose == UFUdop.Purpose.GENERATE) {
@@ -71,30 +71,8 @@ public class Main {
 //                CamPathToolAxisType._FIVE;
 
                 UFPath.LinearMotion linearMotion = new UFPath.LinearMotion();
-                linearMotion.feedValue = 456;
-                linearMotion.type = UFPath.MotionType.MOTION_TYPE_CUT;
-                linearMotion.feedUnit = UFPath.FeedUnit.FEED_UNIT_NONE;
-                double[] pos = {0, 0, 0};
-                linearMotion.position = pos;
-                double[] tAxis = {0, 0, 1};
-                linearMotion.toolAxis = tAxis;
-                ufSession.path().createLinearMotion(pathPrt, linearMotion);
 
-                linearMotion.position[0] = 0;
-                linearMotion.position[1] = 0.707;
-                linearMotion.position[2] = 0.707;
-                linearMotion.toolAxis[0] = 0;
-                linearMotion.toolAxis[1] = 1;
-                linearMotion.toolAxis[2] = 0;
-                ufSession.path().createLinearMotion(pathPrt, linearMotion);
-
-                linearMotion.position[0] = 1;
-                linearMotion.position[1] = 0;
-                linearMotion.position[2] = 0;
-                linearMotion.toolAxis[0] = 1;
-                linearMotion.toolAxis[1] = 0;
-                linearMotion.toolAxis[2] = 0;
-                ufSession.path().createLinearMotion(pathPrt, linearMotion);
+                new ToolPath().writeMove(operName, ufSession, pathPrt, linearMotion);
 
                 ufSession.path().endToolPath(pathPrt);
             }

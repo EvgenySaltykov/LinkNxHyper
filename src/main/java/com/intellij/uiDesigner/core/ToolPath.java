@@ -1,7 +1,8 @@
 package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
-import nxopen.cam.MoveBuilder;
+import nxopen.uf.UFPath;
+import nxopen.uf.UFVariant;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,12 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-public class ToolPath {
-    int i = 0;
-    long start = 0;
+class ToolPath {
 
     private int b;//прочитанный байт
-    private File fileIn;
     private ByteArrayInputStream reader;
     private ByteArrayOutputStream writer;
     private static double feed = -1.0;//значение подачи, если "-1", тогда RAPID
@@ -25,53 +23,37 @@ public class ToolPath {
     private Map<Items, ByteArrayOutputStream> map;
     private double[] pointVector = new double[6];
     private String operName = "";
-// переменные NX
-    private Nx nx;
-    private nxopen.Part workPart;
-    private nxopen.cam.CAMSetup setup;
-    private nxopen.cam.GenericMotionControl genericMotionControl;
-    private nxopen.cam.Move nullNXOpen_CAM_Move = null;
-    private nxopen.cam.MoveToPointBuilder moveToPointBuilder;
+    static Map<String, File> pairOperFile = new HashMap<String, File>();
+    private nxopen.UFSession ufSession;
+    private UFVariant pathPrt;
+    private UFPath.LinearMotion linearMotion;
+    private double[] sys;
 
-    ToolPath(File fileIn, String operName) {
-        this.fileIn = fileIn;
-        this.operName = operName;
+//    ToolPath(File fileIn, String operName) {
+//        map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
+//    }
 
+    ToolPath() {
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
-
-        
-////        intitBuilderParameters(); //создать построители объектов в Nx
-////
-////        writeMove();
-//
-//        try {
-//            moveToPointBuilder.destroy();
-//        } catch (NXException e) {
-//            e.printStackTrace();
-//        } catch (RemoteException e) {
-//            e.printStackTrace();
-//        }
-//
-//        generateToolPath();
     }
 
-    private void writeMove() {
-        try {
-            reader = new ByteArrayInputStream(new Fis(fileIn).readAllBytes());
+    static void setPairOperFile(String operName, File fileIn) {
+        pairOperFile.put(operName.toUpperCase(), fileIn);
+    }
 
-//            int i = 0;
-//            long start = new Date().getTime();
+    void writeMove(String operName, nxopen.UFSession ufSession, UFVariant pathPrt, UFPath.LinearMotion linearMotion) {
+        this.ufSession = ufSession;
+        this.pathPrt = pathPrt;
+        this.linearMotion = linearMotion;
+
+        sys = SystemCoordinateBlank.getSys();
+
+        try {
+            reader = new ByteArrayInputStream(new Fis(pairOperFile.get(operName)).readAllBytes());
 
             while ((b = reader.read()) >= 0) {
                 getFeed(b);
                 createMoveToPoint(b);
-//                i++;
-//                if (i == 10000) {
-//                    i = 0;
-//                    long end = new Date().getTime();
-//                    JOptionPane.showMessageDialog(null, "время траектории " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
-//                    start = new Date().getTime();
-//                }
             }
 
             reader.close();
@@ -144,6 +126,8 @@ public class ToolPath {
 
                                             feed = Math.round(Feed.getFeed() * k);
                                             if (feed < 1.0) feed = 1.0;
+                                        } else {
+                                            feed = Feed.getFeed();
                                         }
                                     }
                                 }
@@ -166,6 +150,7 @@ public class ToolPath {
                     if (b == 77 || b == 76) {//если 'M' или 'L'
 
                         if (b == 77) feed = -1.0;
+                        if (b == 76 && feed == -1.0) feed = Feed.getFeed();
 
                         reader.skip(5l);//пропустить минимум 5 байт "[1]( "
 
@@ -174,7 +159,10 @@ public class ToolPath {
                         }
 
                         getParseArrayDouble(map);
-                        movePoint(pointVector, feed, operName);
+
+                        if (!isEmptyFirstPoint(pointVector)) {
+                            createGoto();
+                        }
                     }
                 }
             }
@@ -255,75 +243,31 @@ public class ToolPath {
         return true;
     }
 
-    private void intitBuilderParameters() {
-        //создать построители объектов в Nx
-
-        nx = new Nx();
-        workPart =nx.getWorkPart();
-        setup = nx.getSetup();
-
+    private void createGoto() {
         try {
-            genericMotionControl = ((nxopen.cam.GenericMotionControl)setup.camoperationCollection().findObject(operName.toUpperCase()));
+            linearMotion.feedUnit = UFPath.FeedUnit.FEED_UNIT_PER_MINUTE;
 
+            if (feed == -1.0) {
+                linearMotion.type = UFPath.MotionType.MOTION_TYPE_RAPID;
+            } else {
+                linearMotion.feedValue = feed;
+                linearMotion.type = UFPath.MotionType.MOTION_TYPE_CUT;
+            }
+            System.out.println(sys);
+            double x = ((pointVector[0] * sys[1]) + (pointVector[1] * sys[4]) + (pointVector[2] * sys[7]) + sys[10]);
+            double y = ((pointVector[0] * sys[2]) + (pointVector[1] * sys[5]) + (pointVector[2] * sys[8]) + sys[11]);
+            double z = ((pointVector[0] * sys[3]) + (pointVector[1] * sys[6]) + (pointVector[2] * sys[9]) + sys[12]);
+
+            double[] pos = {x, y, z};
+            linearMotion.position = pos;
+            double[] tAxis = {pointVector[3] * sys[1], pointVector[4] * sys[4], pointVector[5] * sys[7]};
+            linearMotion.toolAxis = tAxis;
+
+            ufSession.path().createLinearMotion(pathPrt, linearMotion);
         } catch (NXException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе intitBuilderParameters!!!", e);
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createGoto!!!", e);
         } catch (RemoteException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе intitBuilderParameters!!!", e);
-        }
-    }
-
-    private void movePoint(double[] pointVector, double feed, String operName) {
-        if (isEmptyFirstPoint(pointVector)) return; //если 3 координаты не найдены не выполнять тело метода
-        // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-        try {
-
-            nxopen.Point3d point3d = new nxopen.Point3d(pointVector[0], pointVector[1],pointVector[2]);
-            nxopen.Point point = workPart.points().createPoint(point3d);
-            moveToPointBuilder = genericMotionControl.cammoveCollection().createMoveToPointBuilder(nullNXOpen_CAM_Move);
-
-            moveToPointBuilder.setPoint(point); //15ms
-            moveToPointBuilder.setMotionType(MoveBuilder.Motion.CUT);
-
-            nxopen.Point3d origin = new nxopen.Point3d(0, 0, 0);
-            nxopen.Vector3d vector3d = new nxopen.Vector3d(pointVector[3], pointVector[4],pointVector[5]);
-            nxopen.Direction direction = workPart.directions().createDirection(origin, vector3d,  nxopen.SmartObject.UpdateOption.AFTER_MODELING);//15ms
-
-
-            moveToPointBuilder.offsetData().setOffsetVector(direction);
-
-            nxopen.NXObject nXObject = moveToPointBuilder.commit();//15ms
-            nxopen.cam.ManualMove manualMove = ((nxopen.cam.ManualMove)nXObject);
-
-//            if (i == 99) {
-//                start = new Date().getTime();
-//            }
-            genericMotionControl.appendMove(manualMove);//15ms
-//            if (i == 99) {
-//                long end = new Date().getTime();
-//                JOptionPane.showMessageDialog(null, "время просчета " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
-//                i = 0;
-//            } else {
-//                i++;
-//            }
-//            moveToPointBuilder.destroy();
-
-        } catch (NXException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе movePoint!!!", e);
-        } catch (RemoteException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе movePoint!!!", e);
-        }
-    }
-
-    private void generateToolPath() {
-        try {
-            nxopen.cam.CAMObject [] objects1  = new nxopen.cam.CAMObject[1];
-            objects1[0] = genericMotionControl;
-            setup.generateToolPath(objects1);
-        } catch (NXException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createGoto!!!", e);
         }
     }
 }

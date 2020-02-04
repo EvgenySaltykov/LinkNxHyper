@@ -17,11 +17,17 @@ class SystemCoordinateBlank {
     private static final String MSYS_NAME_PATTERN = "^1: cfg\\(\\*NCS_NAME ";
     private static final String MSYS_PATTERN = ".*frameCs_x\\(|.*frameCs_y\\(|.*frameCs_z\\(|.*frameCs_o\\(|.*frameCs_id\\(";
     private static final String GET_ITEM_MSYS_PATTERN = "(^\\d*: frameCs_x\\(|,|\\))|(^\\d*: frameCs_y\\(|,|\\))|(^\\d*: frameCs_z\\(|,|\\))|(^\\d*: frameCs_o\\(|,|\\))|(^\\d*: frameCs_id\\(|,|\\))";
+    private static double[] sys;
+
 
     SystemCoordinateBlank(File file) {
         this.file = file;
-        double[] sys = getItemSYS();
+        sys = getItemSYS();
         createSysInNx(sys);
+    }
+
+    static double[] getSys() {
+        return sys;
     }
 
     private double[] getItemSYS() {

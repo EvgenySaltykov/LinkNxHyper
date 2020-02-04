@@ -1,57 +1,39 @@
 package com.intellij.uiDesigner.core;
 
 import nxopen.NXException;
-import nxopen.SessionFactory;
-import nxopen.UI;
 import nxopen.cam.CAMSetup;
 import nxopen.cam.OperationCollection;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.rmi.RemoteException;
-import java.util.Date;
 import java.util.logging.Level;
 
 class ParserFile {
     private File path;
     private String[] listFile;
     private BufferedWriter writer;
+    private String operName;
 
     ParserFile(File path, String[] listFile) {
         this.path = path;
         this.listFile = listFile;
 
-        long start = new Date().getTime();
-//            File fileOut = new File(path + "\\" + "exportPof.cls");
-////            BufferedWriter writerFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOut),"cp1251"));
-//            BufferedWriter writerFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOut), "UTF-8"));
-            ByteArrayOutputStream writerBuffer;
-
-
         for (String file : listFile) {//перебрать все POF-файлы в директории
             File fileIn = new File(path + "\\" + file);
 
-            exportOperation(fileIn);
-
-            //записать GOTO
-//                writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
-//                new ToolPath(fileIn, writerBuffer);
-//                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
-//                writerBuffer.close();
+            createOperation(fileIn);
         }
-
-//            writerFile.close();
-
-        long end = new Date().getTime();
-        JOptionPane.showMessageDialog(null, "время просчета " + (end - start), "", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void exportOperation(File fileIn) {
+    private void createOperation(File fileIn) {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
         String toolName = new Tool(fileIn).getNameTool();
         String groupProgramName = new Operation(fileIn).getNameGroupProgram();
-        String operName = new Operation(fileIn).getNameOper();
+        this.operName = new Operation(fileIn).getNameOper();
+        ToolPath.setPairOperFile(operName, fileIn); //перенести пару в класс Operation
         int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
         new Feed(fileIn);
         int feed = Feed.getFeed();
@@ -61,8 +43,6 @@ class ParserFile {
         createOperation(groupProgramName, operName, toolName, msysName);
 
         setSpeedAndFeedForOperation(operName, spindleSpeed, feed);
-
-        createMove(fileIn, operName);
     }
 
     private void createGroupProgram(String groupProgramName) {
@@ -111,15 +91,15 @@ class ParserFile {
                         OperationCollection.UseDefaultName.FALSE, operName);
 
                 // создать объект строитель nx-объектов
-                nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined)operation);
+                nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined) operation);
                 nxopen.cam.MillUserDefinedBuilder builder = setup.camoperationCollection().createMillUserDefinedBuilder(millUserDefined);
                 builder.setSelectToolFlag(true);
                 builder.setEnvVarName("EXP_HYPER");
 
                 //генерировать траекторию
                 nxopen.NXObject nXObject = builder.commit();
-                nxopen.cam.CAMObject [] objects  = new nxopen.cam.CAMObject[1];
-                nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined)nXObject);
+                nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
+                nxopen.cam.MillUserDefined millUserDefined2 = ((nxopen.cam.MillUserDefined) nXObject);
                 objects[0] = millUserDefined2;
                 setup.generateToolPath(objects);
 
@@ -131,9 +111,9 @@ class ParserFile {
                 new PrintLog(Level.WARNING, "!!!Ошибка в методе createOperation, имя операции уже создано!!!");
             }
         } catch (NXException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе exportOperation!!!", e);
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе createOperation!!!", e);
         } catch (RemoteException e) {
-            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе exportOperation!!!", e);
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе createOperation!!!", e);
         }
     }
 
@@ -143,11 +123,10 @@ class ParserFile {
         try {
             Nx nx = new Nx();
             nxopen.cam.CAMSetup setup = nx.getSetup();
-            UI theUI = (UI) SessionFactory.get("UI");
 
             nxopen.cam.CAMObject[] objects = new nxopen.cam.CAMObject[1];
 
-            nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined)setup.camoperationCollection().findObject(progName.toUpperCase()));
+            nxopen.cam.MillUserDefined millUserDefined = ((nxopen.cam.MillUserDefined) setup.camoperationCollection().findObject(progName.toUpperCase()));
             objects[0] = millUserDefined;
             nxopen.cam.ObjectsFeedsBuilder builder = setup.createFeedsBuilder(objects);
 
@@ -162,18 +141,5 @@ class ParserFile {
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе setSpeedAndFeed!!!", e);
         }
-    }
-
-    private void createMove(File fileIn, String operName) {
-        ByteArrayOutputStream writerBuffer;
-
-            //записать GOTO
-//            writerBuffer  = new ByteArrayOutputStream();//переменная для записи строк в оперативную память
-            new ToolPath(fileIn, operName);
-//                for (byte b : writerBuffer.toByteArray()) writerFile.write(b);//записать из оперативной памяти в файл
-//                writerBuffer.close();
-//        }
-
-//            writerFile.close();
     }
 }
