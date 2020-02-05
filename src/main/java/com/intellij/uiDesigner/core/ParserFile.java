@@ -33,7 +33,6 @@ class ParserFile {
         String toolName = new Tool(fileIn).getNameTool();
         String groupProgramName = new Operation(fileIn).getNameGroupProgram();
         this.operName = new Operation(fileIn).getNameOper();
-        ToolPath.setPairOperFile(operName, fileIn); //перенести пару в класс Operation
         int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
         new Feed(fileIn);
         int feed = Feed.getFeed();

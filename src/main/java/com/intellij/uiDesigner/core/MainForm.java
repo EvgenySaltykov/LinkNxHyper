@@ -154,6 +154,7 @@ public class MainForm extends JFrame {
                     JOptionPane.showMessageDialog(null, "Укажите путь к директории!", "", JOptionPane.WARNING_MESSAGE);
                 } finally {
                     Nx.updateSession(); //обновить сессию, чтобы появились операции в окне NX
+                    Operation.resetPairOperFile();// сбросить старый список операций
                 }
             }
         });

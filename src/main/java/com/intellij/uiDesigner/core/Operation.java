@@ -1,6 +1,8 @@
 package com.intellij.uiDesigner.core;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,10 +16,12 @@ class Operation {
     private final Pattern PATTERN_NAME_OPER = Pattern.compile("^1: cfg\\(\\*JOBNAME ");
     private Matcher matcherNameOper;
     private boolean isFindNameOper = false;
+    private static Map<String, File> pairOperFile = new HashMap<String, File>();
 
     Operation(File file) {
         this.file = file;
         findNames();
+        pairOperFile.put(nameOper.toUpperCase(), file);
     }
 
     private void findNames() {
@@ -75,11 +79,15 @@ class Operation {
         }
     }
 
-    String getNameGroupProgram() {
-        return this.nameGroupProgram;
+    String getNameGroupProgram() { return this.nameGroupProgram; }
+
+    String getNameOper() { return this.nameOper; }
+
+    static Map <String, File> getPairOperFile() {
+        return pairOperFile;
     }
 
-    String getNameOper() {
-        return this.nameOper;
+    static void resetPairOperFile() {
+        pairOperFile = new HashMap<String, File>();
     }
 }

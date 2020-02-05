@@ -6,7 +6,6 @@ import nxopen.uf.UFVariant;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
@@ -24,22 +23,13 @@ class ToolPath {
     private Map<Items, ByteArrayOutputStream> map;
     private double[] pointVector = new double[6];
     private String operName = "";
-    static Map<String, File> pairOperFile = new HashMap<String, File>();
     private nxopen.UFSession ufSession;
     private UFVariant pathPrt;
     private UFPath.LinearMotion linearMotion;
     private double[] sys;
 
-//    ToolPath(File fileIn, String operName) {
-//        map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
-//    }
-
     ToolPath() {
         map = getMap();//Заполнить коллекцию пустыми байтовыми массивами для записи координат
-    }
-
-    static void setPairOperFile(String operName, File fileIn) {
-        pairOperFile.put(operName.toUpperCase(), fileIn);
     }
 
     void writeMove(String operName, nxopen.UFSession ufSession, UFVariant pathPrt, UFPath.LinearMotion linearMotion) {
@@ -50,7 +40,8 @@ class ToolPath {
         sys = SystemCoordinateBlank.getSys();
 
         try {
-            reader = new ByteArrayInputStream(new Fis(pairOperFile.get(operName)).readAllBytes());
+//            reader = new ByteArrayInputStream(new Fis(pairOperFile.get(operName)).readAllBytes());
+            reader = new ByteArrayInputStream(new Fis(Operation.getPairOperFile().get(operName)).readAllBytes());
 
             while ((b = reader.read()) >= 0) {
                 getFeed(b);
