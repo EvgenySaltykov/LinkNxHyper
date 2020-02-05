@@ -20,6 +20,7 @@ class ToolPath {
     private ByteArrayOutputStream writer;
     private static double feed = -1.0;//значение подачи, если "-1", тогда RAPID
     private static double prevFeed = 0.0;//последнее выведенное значение подачи
+    private UFPath.MotionType prevMotionType = UFPath.MotionType.MOTION_TYPE_RAPID;// предъидущий тип движения
     private Map<Items, ByteArrayOutputStream> map;
     private double[] pointVector = new double[6];
     private String operName = "";
@@ -248,10 +249,22 @@ class ToolPath {
             linearMotion.feedUnit = UFPath.FeedUnit.FEED_UNIT_PER_MINUTE;
 
             if (feed == -1.0) {
-                linearMotion.type = UFPath.MotionType.MOTION_TYPE_RAPID;
+                prevMotionType = UFPath.MotionType.MOTION_TYPE_RAPID;
+                linearMotion.type = prevMotionType;
+                prevFeed = feed;
             } else {
                 linearMotion.feedValue = feed;
-                linearMotion.type = UFPath.MotionType.MOTION_TYPE_CUT;
+                if (prevFeed != feed) {
+                    if (prevMotionType == UFPath.MotionType.MOTION_TYPE_CUT) {
+                        prevMotionType = UFPath.MotionType.MOTION_TYPE_STEPOVER;
+                        linearMotion.type = prevMotionType;
+                    } else {
+                        prevMotionType = UFPath.MotionType.MOTION_TYPE_CUT;
+                        linearMotion.type = prevMotionType;
+                    }
+                }
+
+                prevFeed = feed;
             }
 
             double x = ((pointVector[0] * sys[1]) + (pointVector[1] * sys[4]) + (pointVector[2] * sys[7]) + sys[10]);
@@ -263,7 +276,6 @@ class ToolPath {
             double vX = (pointVector[3] * sys[1]) + (pointVector[4] * sys[4]) + (pointVector[5] * sys[7]);
             double vY = (pointVector[3] * sys[2]) + (pointVector[4] * sys[5]) + (pointVector[5] * sys[8]);
             double vZ = (pointVector[3] * sys[3]) + (pointVector[4] * sys[6]) + (pointVector[5] * sys[9]);
-//            double[] tAxis = {pointVector[3], pointVector[4], pointVector[5]};
             double[] tAxis = {vX, vY, vZ};
             linearMotion.toolAxis = tAxis;
 
