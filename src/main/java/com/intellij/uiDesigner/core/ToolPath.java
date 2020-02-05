@@ -253,14 +253,18 @@ class ToolPath {
                 linearMotion.feedValue = feed;
                 linearMotion.type = UFPath.MotionType.MOTION_TYPE_CUT;
             }
-            System.out.println(sys);
+
             double x = ((pointVector[0] * sys[1]) + (pointVector[1] * sys[4]) + (pointVector[2] * sys[7]) + sys[10]);
             double y = ((pointVector[0] * sys[2]) + (pointVector[1] * sys[5]) + (pointVector[2] * sys[8]) + sys[11]);
             double z = ((pointVector[0] * sys[3]) + (pointVector[1] * sys[6]) + (pointVector[2] * sys[9]) + sys[12]);
-
             double[] pos = {x, y, z};
             linearMotion.position = pos;
-            double[] tAxis = {pointVector[3] * sys[1], pointVector[4] * sys[4], pointVector[5] * sys[7]};
+
+            double vX = (pointVector[3] * sys[1]) + (pointVector[4] * sys[4]) + (pointVector[5] * sys[7]);
+            double vY = (pointVector[3] * sys[2]) + (pointVector[4] * sys[5]) + (pointVector[5] * sys[8]);
+            double vZ = (pointVector[3] * sys[3]) + (pointVector[4] * sys[6]) + (pointVector[5] * sys[9]);
+//            double[] tAxis = {pointVector[3], pointVector[4], pointVector[5]};
+            double[] tAxis = {vX, vY, vZ};
             linearMotion.toolAxis = tAxis;
 
             ufSession.path().createLinearMotion(pathPrt, linearMotion);
