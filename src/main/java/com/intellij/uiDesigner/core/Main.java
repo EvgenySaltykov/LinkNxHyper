@@ -59,6 +59,7 @@ public class Main {
 
 // ////////////////////////////////////////////////////////////
 //               UFVariant mom_tool_path_type = new UFVariant(0);
+//               ufSession.mom().setString(pathPrt, "tool_path_type", "variable_axis");
 // ////////////////////////////////////////////////////////////
 
             if (purpose == UFUdop.Purpose.USER_PARAMS) {
@@ -68,7 +69,7 @@ public class Main {
             if (purpose == UFUdop.Purpose.GENERATE) {
                 ufSession.path().initToolPath(pathPrt);
 
-//                CamPathToolAxisType._FIVE;
+//                CamPathToolAxisType.FIVE;
 
                 UFPath.LinearMotion linearMotion = new UFPath.LinearMotion();
 

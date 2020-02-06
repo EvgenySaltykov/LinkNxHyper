@@ -31,15 +31,19 @@ class ParserFile {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
         String toolName = new Tool(fileIn).getNameTool();
-        String groupProgramName = new Operation(fileIn).getNameGroupProgram();
-        this.operName = new Operation(fileIn).getNameOper();
+
+        Operation operation = new Operation(fileIn);
+        String groupProgramName = operation.getNameGroupProgram();
+        this.operName = operation.getNameOper();
+        String toolPathAxis = operation.getToolPathAxis();
+
         int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
         new Feed(fileIn);
         int feed = Feed.getFeed();
 
         createGroupProgram(groupProgramName);
 
-        createOperation(groupProgramName, operName, toolName, msysName);
+        createOperation(groupProgramName, operName, toolName, msysName, toolPathAxis);
 
         setSpeedAndFeedForOperation(operName, spindleSpeed, feed);
     }
@@ -70,7 +74,7 @@ class ParserFile {
         }
     }
 
-    private void createOperation(String groupProgramName, String operName, String toolName, String msysName) {
+    private void createOperation(String groupProgramName, String operName, String toolName, String msysName, String toolPathAxis) {
         // создать операцию в Nx
         try {
             Nx nx = new Nx();
@@ -86,7 +90,14 @@ class ParserFile {
                 nxopen.cam.OrientGeometry geometry = (nxopen.cam.OrientGeometry) setup.camgroupCollection().findObject(msysName);
 
                 // создать операцию
-                nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, "mill_multi-axis", "MILL_USER",
+                String typeOper = "";
+                if (toolPathAxis.equals("3D")) {
+                    typeOper = "mill_contour";
+                } else if (toolPathAxis.equals("5X")) {
+                    typeOper = "mill_multi-axis";
+                }
+
+                nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, typeOper, "MILL_USER",
                         OperationCollection.UseDefaultName.FALSE, operName);
 
                 // создать объект строитель nx-объектов

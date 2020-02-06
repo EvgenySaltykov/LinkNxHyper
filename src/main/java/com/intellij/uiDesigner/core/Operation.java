@@ -17,6 +17,10 @@ class Operation {
     private Matcher matcherNameOper;
     private boolean isFindNameOper = false;
     private static Map<String, File> pairOperFile = new HashMap<String, File>();
+    private String toolPathAxis = "none";
+    private final Pattern PATTERN_TOOLPATH_MULTI_AXIS = Pattern.compile("^10: proc\\(firstPosition");
+    private Matcher matcherToolPathMultiAxis;
+    private boolean isFindToolAxis = false;
 
     Operation(File file) {
         this.file = file;
@@ -41,7 +45,11 @@ class Operation {
                 this.nameOper = findNameOper(stringIn);
             }
 
-            if (isFindNameGroupProgram && isFindNameOper) {
+            if (!isFindToolAxis) {
+                this.toolPathAxis = findToolPathAxis(stringIn);
+            }
+
+            if (isFindToolAxis) {
                 break;
             }
 
@@ -79,11 +87,39 @@ class Operation {
         }
     }
 
-    String getNameGroupProgram() { return this.nameGroupProgram; }
+    private String findToolPathAxis(String stringIn) {
 
-    String getNameOper() { return this.nameOper; }
+        matcherToolPathMultiAxis = PATTERN_TOOLPATH_MULTI_AXIS.matcher(stringIn);
 
-    static Map <String, File> getPairOperFile() {
+        if (matcherToolPathMultiAxis.find()) {
+            int l = stringIn.length();
+            String subStr = stringIn.substring((l - 3), (l - 1));
+            if (subStr.equals("3D")) {
+                isFindToolAxis = true;
+                return "3D";
+            }
+            if (subStr.equals("5X")) {
+                isFindToolAxis = true;
+                return "5X";
+            }
+        }
+
+        return "none";
+    }
+
+    String getNameGroupProgram() {
+        return this.nameGroupProgram;
+    }
+
+    String getNameOper() {
+        return this.nameOper;
+    }
+
+    String getToolPathAxis() {
+        return this.toolPathAxis;
+    }
+
+    static Map<String, File> getPairOperFile() {
         return pairOperFile;
     }
 
