@@ -96,7 +96,6 @@ class ParserFile {
                 } else if (toolPathAxis.equals("5X")) {
                     typeOper = "mill_multi-axis";
                 }
-
                 nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, typeOper, "MILL_USER",
                         OperationCollection.UseDefaultName.FALSE, operName);
 
