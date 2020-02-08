@@ -296,7 +296,6 @@ class Tool {
     }
 
     private boolean isNewTool(String nameTool, String[] listTool) {
-        if (listTool.length == 0) return false;
 
         for (String tool : listTool) {
             if (tool.equals(nameTool.toUpperCase())) return false;
