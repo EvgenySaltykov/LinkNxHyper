@@ -37,7 +37,7 @@ class ToolPath {
         this.pathPrt = pathPrt;
         this.linearMotion = linearMotion;
 
-        sys = SystemCoordinateBlank.getSys();
+        sys = SystemCoordinateBlank.getmSys();
 
         try {
 //            reader = new ByteArrayInputStream(new Fis(pairOperFile.get(operName)).readAllBytes());
@@ -259,16 +259,16 @@ class ToolPath {
             }
 
             //расчет точки относительно привязки на станке
-            double x = ((pointVector[0] * sys[1]) + (pointVector[1] * sys[4]) + (pointVector[2] * sys[7]) + sys[10]);
-            double y = ((pointVector[0] * sys[2]) + (pointVector[1] * sys[5]) + (pointVector[2] * sys[8]) + sys[11]);
-            double z = ((pointVector[0] * sys[3]) + (pointVector[1] * sys[6]) + (pointVector[2] * sys[9]) + sys[12]);
+            double x = ((pointVector[0] * sys[0]) + (pointVector[1] * sys[3]) + (pointVector[2] * sys[6]) + sys[9]);
+            double y = ((pointVector[0] * sys[1]) + (pointVector[1] * sys[4]) + (pointVector[2] * sys[7]) + sys[10]);
+            double z = ((pointVector[0] * sys[2]) + (pointVector[1] * sys[5]) + (pointVector[2] * sys[8]) + sys[11]);
             double[] pos = {x, y, z};
             linearMotion.position = pos;
 
             //расчет вектора инструмента относительно привязки на станке
-            double vX = (pointVector[3] * sys[1]) + (pointVector[4] * sys[4]) + (pointVector[5] * sys[7]);
-            double vY = (pointVector[3] * sys[2]) + (pointVector[4] * sys[5]) + (pointVector[5] * sys[8]);
-            double vZ = (pointVector[3] * sys[3]) + (pointVector[4] * sys[6]) + (pointVector[5] * sys[9]);
+            double vX = (pointVector[3] * sys[0]) + (pointVector[4] * sys[3]) + (pointVector[5] * sys[6]);
+            double vY = (pointVector[3] * sys[1]) + (pointVector[4] * sys[4]) + (pointVector[5] * sys[7]);
+            double vZ = (pointVector[3] * sys[2]) + (pointVector[4] * sys[5]) + (pointVector[5] * sys[8]);
             double[] tAxis = {vX, vY, vZ};
             linearMotion.toolAxis = tAxis;
 

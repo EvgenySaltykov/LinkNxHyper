@@ -15,26 +15,24 @@ class SystemCoordinateBlank {
     private int maxReadLine = 2000; //максимальное колличество прочтенных сторк, чтобы не читать весь файл целиком
     private String mSysName = ""; //имя СКС
     private static final String MSYS_NAME_PATTERN = "^1: cfg\\(\\*NCS_NAME ";
-    private static final String MSYS_PATTERN = ".*frameCs_x\\(|.*frameCs_y\\(|.*frameCs_z\\(|.*frameCs_o\\(|.*frameCs_id\\(";
-    private static final String GET_ITEM_MSYS_PATTERN = "(^\\d*: frameCs_x\\(|,|\\))|(^\\d*: frameCs_y\\(|,|\\))|(^\\d*: frameCs_z\\(|,|\\))|(^\\d*: frameCs_o\\(|,|\\))|(^\\d*: frameCs_id\\(|,|\\))";
-    private static double[] sys;
+    private static final String MSYS_PATTERN = "^0: ncCs_x|^0: ncCs_y|^0: ncCs_z|^0: ncCs_o";
+    private static final String GET_ITEM_MSYS_PATTERN = "(^0: ncCs_x\\( |,| \\))|(^0: ncCs_y\\( |,| \\))|(^0: ncCs_z\\( |,| \\))|(^0: ncCs_o\\( |,| \\))";
+    private static final String SYS_PATTERN_FOR_OPERATION = ".*frameCs_x\\(|.*frameCs_y\\(|.*frameCs_z\\(|.*frameCs_o\\(";
+    private static final String GET_ITEM_MSYS_PATTERN_FOR_OPERATION = "(^\\d*: frameCs_x\\(|,|\\))|(^\\d*: frameCs_y\\(|,|\\))|(^\\d*: frameCs_z\\(|,|\\))|(^\\d*: frameCs_o\\(|,|\\))";
 
+    private static double[] mSys;
 
     SystemCoordinateBlank(File file) {
         this.file = file;
-        sys = getItemSYS();
-        createSysInNx(sys);
-    }
-
-    static double[] getSys() {
-        return sys;
+        mSys = getItemSYS();
+        createSysInNx(mSys);
     }
 
     private double[] getItemSYS() {
         //заполняет матрицу СКЗ
         ReadFile reader = new ReadFile(this.file);
         String in;
-        double[] num = new double[13];
+        double[] num = new double[12];
         Matcher matcher;
 
         int i = 0;
@@ -46,8 +44,12 @@ class SystemCoordinateBlank {
 
                 for (String s : items) {
                     if (!s.equals("")) {
-                        num[i] = Double.parseDouble(s);
-                        i++;
+                        try {
+                            num[i] = Double.parseDouble(s);
+                            i++;
+                        } catch (NumberFormatException e) {
+                            new PrintLog(Level.WARNING, "Ошибка в методе getItemSYS", e);
+                        }
                     }
                 }
             }
@@ -78,9 +80,9 @@ class SystemCoordinateBlank {
                 nxopen.cam.NCGroup nCGroup2;
                 nCGroup2 = setup.camgroupCollection().createGeometry(nCGroup1, "mill_planar", "MCS", NCGroupCollection.UseDefaultName.FALSE, mSysName);
 
-                nxopen.Point3d origin3 = new nxopen.Point3d(sys[10], sys[11], sys[12]);
-                nxopen.Vector3d xDirection1 = new nxopen.Vector3d(sys[1], sys[2], sys[3]);
-                nxopen.Vector3d yDirection1 = new nxopen.Vector3d(sys[4], sys[5], sys[6]);
+                nxopen.Point3d origin3 = new nxopen.Point3d(sys[9], sys[10], sys[11]);
+                nxopen.Vector3d xDirection1 = new nxopen.Vector3d(sys[0], sys[1], sys[2]);
+                nxopen.Vector3d yDirection1 = new nxopen.Vector3d(sys[3], sys[4], sys[5]);
                 nxopen.Xform xform1;
                 xform1 = workPart.xforms().createXform(origin3, xDirection1, yDirection1, nxopen.SmartObject.UpdateOption.AFTER_MODELING, 1.0);
                 nxopen.CartesianCoordinateSystem cartesianCoordinateSystem1;
@@ -91,7 +93,7 @@ class SystemCoordinateBlank {
                 millOrientGeomBuilder1 = setup.camgroupCollection().createMillOrientGeomBuilder(orientGeometry1);
 
                 millOrientGeomBuilder1.setSpecialOutputMode(nxopen.cam.OrientGeomBuilder.SpecialOutputModes.FIXTURE_OFFSET);
-                millOrientGeomBuilder1.fixtureOffsetBuilder().setValue((int) sys[0]);
+                millOrientGeomBuilder1.fixtureOffsetBuilder().setValue(0); // номер СКС (G53)
                 millOrientGeomBuilder1.setMcs(cartesianCoordinateSystem1);
                 millOrientGeomBuilder1.commit();
                 millOrientGeomBuilder1.destroy();
@@ -105,5 +107,9 @@ class SystemCoordinateBlank {
 
     String getMSysName() {
         return this.mSysName;
+    }
+
+    static double[] getmSys() {
+        return mSys;
     }
 }

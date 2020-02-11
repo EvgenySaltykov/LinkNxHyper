@@ -381,7 +381,9 @@ class Tool {
                     upperDiam = itemHolder.get(i + 1).getX() * 2;
                     length = itemHolder.get(i + 1).getY() - itemHolder.get(i).getY();
 
-                    toolBuilder.holderSectionBuilder().addByUpperDiameter(i, lowerDiam, length, upperDiam, 0.0);
+                    if (length > 0.001) {
+                        toolBuilder.holderSectionBuilder().addByUpperDiameter(i, lowerDiam, length, upperDiam, 0.0);
+                    }
                 }
             }
             toolBuilder.tlNumberBuilder().setValue(numberTool);

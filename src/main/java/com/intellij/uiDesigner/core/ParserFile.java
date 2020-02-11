@@ -91,10 +91,10 @@ class ParserFile {
 
                 // создать операцию
                 String typeOper = "";
-                if (toolPathAxis.equals("3D")) {
-                    typeOper = "mill_contour";
-                } else if (toolPathAxis.equals("5X")) {
+                if (toolPathAxis.equals("5X")) {
                     typeOper = "mill_multi-axis";
+                } else {
+                    typeOper = "mill_contour";
                 }
                 nxopen.cam.Operation operation = setup.camoperationCollection().create(prog, method, tool, geometry, typeOper, "MILL_USER",
                         OperationCollection.UseDefaultName.FALSE, operName);
