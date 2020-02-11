@@ -37,7 +37,7 @@ class ToolPath {
         this.pathPrt = pathPrt;
         this.linearMotion = linearMotion;
 
-        sys = SystemCoordinateBlank.getmSys();
+        sys = SystemCoordinateBlank.getOrigin();
 
         try {
 //            reader = new ByteArrayInputStream(new Fis(pairOperFile.get(operName)).readAllBytes());

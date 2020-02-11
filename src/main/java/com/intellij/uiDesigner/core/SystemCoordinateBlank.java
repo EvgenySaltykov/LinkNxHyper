@@ -6,6 +6,7 @@ import nxopen.cam.NCGroupCollection;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,56 +14,72 @@ import java.util.regex.Pattern;
 class SystemCoordinateBlank {
     private File file;
     private int maxReadLine = 2000; //максимальное колличество прочтенных сторк, чтобы не читать весь файл целиком
-    private String mSysName = ""; //имя СКС
+    private String mSysName = null; //имя СКС
     private static final String MSYS_NAME_PATTERN = "^1: cfg\\(\\*NCS_NAME ";
     private static final String MSYS_PATTERN = "^0: ncCs_x|^0: ncCs_y|^0: ncCs_z|^0: ncCs_o";
     private static final String GET_ITEM_MSYS_PATTERN = "(^0: ncCs_x\\( |,| \\))|(^0: ncCs_y\\( |,| \\))|(^0: ncCs_z\\( |,| \\))|(^0: ncCs_o\\( |,| \\))";
+    private static double[] mSys = new double[12];
     private static final String SYS_PATTERN_FOR_OPERATION = ".*frameCs_x\\(|.*frameCs_y\\(|.*frameCs_z\\(|.*frameCs_o\\(";
     private static final String GET_ITEM_MSYS_PATTERN_FOR_OPERATION = "(^\\d*: frameCs_x\\(|,|\\))|(^\\d*: frameCs_y\\(|,|\\))|(^\\d*: frameCs_z\\(|,|\\))|(^\\d*: frameCs_o\\(|,|\\))";
+    private double[] origin;
 
-    private static double[] mSys;
 
     SystemCoordinateBlank(File file) {
         this.file = file;
-        mSys = getItemSYS();
-        createSysInNx(mSys);
-    }
 
-    private double[] getItemSYS() {
-        //заполняет матрицу СКЗ
         ReadFile reader = new ReadFile(this.file);
         String in;
-        double[] num = new double[12];
-        Matcher matcher;
+        ArrayList<Double> listMSys = new ArrayList<Double>();
 
         int i = 0;
         while (reader.ready() && maxReadLine > 0) {
             in = reader.getLine();
-
-            if ((Pattern.compile(MSYS_PATTERN).matcher(in).find())) {
-                String[] items = in.split(GET_ITEM_MSYS_PATTERN);
-
-                for (String s : items) {
-                    if (!s.equals("")) {
-                        try {
-                            num[i] = Double.parseDouble(s);
-                            i++;
-                        } catch (NumberFormatException e) {
-                            new PrintLog(Level.WARNING, "Ошибка в методе getItemSYS", e);
-                        }
-                    }
-                }
-            }
-
-            matcher = Pattern.compile(MSYS_NAME_PATTERN).matcher(in);
-            if (matcher.find()) {
-                mSysName = in.substring(matcher.end(), (in.length() - 1)).replace(" ", "_").replace(":", "_");
-            }
+            mSysName = getName(in);
+            listMSys.addAll(getItemSYS(in));
 
             maxReadLine -= 1;
         }
 
-        return num;
+
+        for (int j = 0; j < 12; j++) mSys[j] = listMSys.get(j); //mSys = listMSys.stream().mapToDouble(Double::doubleValue).toArray();
+        
+        createSysInNx(mSys);
+    }
+
+    private String getName(String in) {
+        Matcher matcher;
+
+        if (mSysName == null) {
+            matcher = Pattern.compile(MSYS_NAME_PATTERN).matcher(in);
+
+            if (matcher.find()) {
+                return in.substring(matcher.end(), (in.length() - 1)).replace(" ", "_").replace(":", "_");
+            }
+        }
+
+        return mSysName;
+    }
+
+    private ArrayList<Double> getItemSYS(String in) {
+        //вернуть вектор или смещение по одной из осей
+
+        ArrayList<Double> item = new ArrayList<Double>();
+
+        if ((Pattern.compile(MSYS_PATTERN).matcher(in).find())) {
+            String[] items = in.split(GET_ITEM_MSYS_PATTERN);
+
+            for (String s : items) {
+                if (!s.equals("")) {
+                    try {
+                        item.add(Double.parseDouble(s));
+                    } catch (NumberFormatException e) {
+                        new PrintLog(Level.WARNING, "Ошибка в методе getItemSYS", e);
+                    }
+                }
+            }
+        }
+
+        return item;
     }
 
     private void createSysInNx(double[] sys) {
@@ -109,7 +126,7 @@ class SystemCoordinateBlank {
         return this.mSysName;
     }
 
-    static double[] getmSys() {
+    static double[] getOrigin() {
         return mSys;
     }
 }
