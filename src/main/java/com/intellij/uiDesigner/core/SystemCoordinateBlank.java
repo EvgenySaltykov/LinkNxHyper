@@ -95,7 +95,14 @@ class SystemCoordinateBlank {
             nxopen.cam.CAMObject[] geometryRootMembers = geometryRoot.getMembers();
 
             if (Nx.isEmptyName(mSysName, geometryRootMembers)) { // если имя СКС не создано
-                nxopen.cam.NCGroup nCGroup1 = (setup.camgroupCollection().findObject(parentGeometry));
+
+                nxopen.cam.NCGroup nCGroup1;
+                if (Nx.isEmptyName("BLANK_H", geometryRootMembers)) {
+                    nCGroup1 = (setup.camgroupCollection().findObject(parentGeometry));
+                } else {
+                    nCGroup1 = (setup.camgroupCollection().findObject("BLANK_H"));
+                }
+
                 nxopen.cam.NCGroup nCGroup2;
                 nCGroup2 = setup.camgroupCollection().createGeometry(nCGroup1, "mill_planar", "MCS", NCGroupCollection.UseDefaultName.FALSE, mSysName);
 

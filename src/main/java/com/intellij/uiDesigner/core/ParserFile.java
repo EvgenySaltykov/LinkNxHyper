@@ -39,7 +39,7 @@ class ParserFile {
 
         int spindleSpeed = new SpindleSpeed(fileIn).getSpeed();
         new Feed(fileIn);
-        int feed = Feed.getFeed();
+        int feed = Feed.getFeedX();
 
         createGroupProgram(groupProgramName);
 

@@ -6,19 +6,19 @@ import java.util.regex.Pattern;
 
 class Feed {
     private File file;
-    private static int feed = -1;
+    private static int feedX = -1;
 
     Feed(File file) {
         this.file = file;
-        feed = findFeed();
+        feedX = findFeed();
     }
 
     private int findFeed() {
         ReadFile reader = new ReadFile(this.file);
         String stringIn;
         StringBuilder outString = new StringBuilder();
-        String PATTERN_FEED = "^\\d*: FX\\(";
-        Pattern pattern = Pattern.compile(PATTERN_FEED);
+        String PATTERN_FEED_X = "^\\d*: FX\\(";
+        Pattern pattern = Pattern.compile(PATTERN_FEED_X);
         Matcher matcher;
         int maxReadLine = 2000; //максимальное колличество прочтенных сторк, чтобы не читать весь файл целиком
 
@@ -41,7 +41,7 @@ class Feed {
         return Integer.parseInt(outString.toString());
     }
 
-    static int getFeed() {
-        return feed;
+    static int getFeedX() {
+        return feedX;
     }
 }

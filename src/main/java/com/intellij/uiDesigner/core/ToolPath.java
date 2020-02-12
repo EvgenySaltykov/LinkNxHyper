@@ -116,10 +116,10 @@ class ToolPath {
 
                                             double k = Double.parseDouble(writer.toString());
 
-                                            feed = Math.round(Feed.getFeed() * k);
+                                            feed = Math.round(Feed.getFeedX() * k);
                                             if (feed < 1.0) feed = 1.0;
                                         } else {
-                                            feed = Feed.getFeed();
+                                            feed = Feed.getFeedX();
                                         }
                                     }
                                 }
@@ -142,7 +142,7 @@ class ToolPath {
                     if (b == 77 || b == 76) {//если 'M' или 'L'
 
                         if (b == 77) feed = -1.0;
-                        if (b == 76 && feed == -1.0) feed = Feed.getFeed();
+                        if (b == 76 && feed == -1.0) feed = Feed.getFeedX();
 
                         reader.skip(5l);//пропустить минимум 5 байт "[1]( "
 
