@@ -21,8 +21,7 @@ class SystemCoordinateBlank {
     private static double[] mSys = new double[12];
     private static final String SYS_PATTERN_FOR_OPERATION = ".*frameCs_x\\(|.*frameCs_y\\(|.*frameCs_z\\(|.*frameCs_o\\(";
     private static final String GET_ITEM_MSYS_PATTERN_FOR_OPERATION = "(^\\d*: frameCs_x\\(|,|\\))|(^\\d*: frameCs_y\\(|,|\\))|(^\\d*: frameCs_z\\(|,|\\))|(^\\d*: frameCs_o\\(|,|\\))";
-    private double[] origin;
-
+    private static double[] origin = new double[12];
 
     SystemCoordinateBlank(File file) {
         this.file = file;
@@ -30,19 +29,22 @@ class SystemCoordinateBlank {
         ReadFile reader = new ReadFile(this.file);
         String in;
         ArrayList<Double> listMSys = new ArrayList<Double>();
+        ArrayList<Double> listSys = new ArrayList<Double>();
 
-        int i = 0;
         while (reader.ready() && maxReadLine > 0) {
             in = reader.getLine();
             mSysName = getName(in);
-            listMSys.addAll(getItemSYS(in));
+            listMSys.addAll(getItemSYS(in, MSYS_PATTERN, GET_ITEM_MSYS_PATTERN));
+            listSys.addAll(getItemSYS(in, SYS_PATTERN_FOR_OPERATION, GET_ITEM_MSYS_PATTERN_FOR_OPERATION));
 
             maxReadLine -= 1;
         }
 
+        for (int i = 0; i < 12; i++) {//mSys = listMSys.stream().mapToDouble(Double::doubleValue).toArray();
+            mSys[i] = listMSys.get(i);
+            origin[i] = listSys.get(i);
+        }
 
-        for (int j = 0; j < 12; j++) mSys[j] = listMSys.get(j); //mSys = listMSys.stream().mapToDouble(Double::doubleValue).toArray();
-        
         createSysInNx(mSys);
     }
 
@@ -60,13 +62,13 @@ class SystemCoordinateBlank {
         return mSysName;
     }
 
-    private ArrayList<Double> getItemSYS(String in) {
+    private ArrayList<Double> getItemSYS(String in, String pattern, String getItemPattern) {
         //вернуть вектор или смещение по одной из осей
 
         ArrayList<Double> item = new ArrayList<Double>();
 
-        if ((Pattern.compile(MSYS_PATTERN).matcher(in).find())) {
-            String[] items = in.split(GET_ITEM_MSYS_PATTERN);
+        if ((Pattern.compile(pattern).matcher(in).find())) {
+            String[] items = in.split(getItemPattern);
 
             for (String s : items) {
                 if (!s.equals("")) {
@@ -127,6 +129,6 @@ class SystemCoordinateBlank {
     }
 
     static double[] getOrigin() {
-        return mSys;
+        return origin;
     }
 }
