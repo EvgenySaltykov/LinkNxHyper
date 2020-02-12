@@ -7,7 +7,7 @@
     <groupId>org.example</groupId>
     <artifactId>LinkNxHyper</artifactId>
     <name>exportToolPath</name>
-    <version>2020-01-V1.0.6</version>
+    <version>2020-01-V1.0.7</version>
 
 
     <properties>

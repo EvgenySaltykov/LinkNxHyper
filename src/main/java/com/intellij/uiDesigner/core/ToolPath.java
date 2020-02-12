@@ -105,7 +105,9 @@ class ToolPath {
                                 b = reader.read();
                                 if (b == 70) {//"F"
                                     b = reader.read();
-                                    if (b == 88) {//"X"
+                                    if (b == 88 || b == 90) {//"X" или "Z"
+                                        feed = b == 88 ? Feed.getFeedX() : Feed.getFeedZ();
+
                                         b = reader.read();
                                         if (b == 42) {//"*"
                                             writer = new ByteArrayOutputStream();
@@ -115,11 +117,8 @@ class ToolPath {
                                             }
 
                                             double k = Double.parseDouble(writer.toString());
-
-                                            feed = Math.round(Feed.getFeedX() * k);
+                                            feed = Math.round(feed * k);
                                             if (feed < 1.0) feed = 1.0;
-                                        } else {
-                                            feed = Feed.getFeedX();
                                         }
                                     }
                                 }
@@ -243,6 +242,7 @@ class ToolPath {
                 prevMotionType = UFPath.MotionType.MOTION_TYPE_RAPID;
                 linearMotion.type = prevMotionType;
                 prevFeed = feed;
+                linearMotion.feedValue = 0.0;
             } else {
                 linearMotion.feedValue = feed;
                 if (prevFeed != feed) {
