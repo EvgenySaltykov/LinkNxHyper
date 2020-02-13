@@ -38,6 +38,8 @@ class Tool {
                 typeTool = "BALL_MILL";
             } else if (type.equals("endMill") || type.equals("radiusMill")) {
                 typeTool = "MILL";
+            }else if (type.equals("lollipop")) {
+                typeTool = "SPHERICAL_MILL";
             } else {
                 JOptionPane.showMessageDialog(null, "Не удалось определить тип инструмента, обратитесь к разработчику.", "", JOptionPane.WARNING_MESSAGE);
                 new PrintLog(Level.WARNING, "!!!Ошибка определения типа инструмента. method: findTypeTool!!!");
@@ -57,6 +59,16 @@ class Tool {
     private void findDiamTool(String stringIn, Matcher matcher) {
         if (matcher.find()) {
             diamTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
+        }
+    }
+
+    private double diamShankSphereTool = 0.0;
+    private final String DIAM_SHANK_SPHERE_TOOL = "^11: vtipDiameter\\(";
+    private Pattern patternDiamShankSphereTool = Pattern.compile(DIAM_SHANK_SPHERE_TOOL);
+
+    private void findDiamShankShereTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            diamShankSphereTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
         }
     }
 
@@ -210,6 +222,7 @@ class Tool {
                 findId(stringIn, patternId.matcher(stringIn));
                 findTypeTool(stringIn, patternTypeTool.matcher(stringIn));
                 findDiamTool(stringIn, patternDiamTool.matcher(stringIn));
+                findDiamShankShereTool(stringIn, patternDiamShankSphereTool.matcher(stringIn));
                 findCornerTool(stringIn, patternCornerRadTool.matcher(stringIn));
                 findAngleTool(stringIn, patternAngleTool.matcher(stringIn));
                 findLengthTool(stringIn, patternLengthTool.matcher(stringIn));
@@ -248,6 +261,8 @@ class Tool {
                 createBallMill(groups, machineRoot);
             }else if (typeTool.equals("MILL")) {
                 createEndMill(groups, machineRoot);
+            } else if (typeTool.equals("SPHERICAL_MILL")) {
+                createSphericalMill(groups, machineRoot);
             } else {
                 JOptionPane.showMessageDialog(null, "Не удалось определить тип инструмента!", "", JOptionPane.WARNING_MESSAGE);
                 PrintLog.closeLogFile(); //закрыть файл log.txt
@@ -397,6 +412,53 @@ class Tool {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createEndMill!!!", e);
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createEndMill!!!", e);
+        }
+    }
+
+    private void createSphericalMill(nxopen.cam.NCGroupCollection groups, nxopen.cam.NCGroup machineRoot) {
+        try {
+            nxopen.cam.NCGroupCollection.UseDefaultName camFalse = NCGroupCollection.UseDefaultName.FALSE;
+            nxopen.cam.NCGroup toolGroup;
+            toolGroup = groups.createTool(machineRoot, "mill_planar", typeTool, camFalse, nameTool);
+
+            nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
+
+            nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
+            toolBuilder.tlHeightBuilder().setValue(lengthTool);
+            toolBuilder.tlShankDiaBuilder().setValue(diamShankSphereTool);
+            toolBuilder.tlDiameterBuilder().setValue(diamTool);
+            if (isShank) {
+                toolBuilder.setUseTaperedShank(true);
+                toolBuilder.taperedShankDiameterBuilder().setValue(diamShankTool);
+                toolBuilder.taperedShankLengthBuilder().setValue(shankLengthTool);
+                toolBuilder.taperedShankTaperLengthBuilder().setValue(chamferLengthShankTool);
+            }
+
+            double lowerDiam;
+            double upperDiam;
+            double length;
+            if (isHolder) {
+                for (int i = 0; i < (itemHolder.size() - 2); i++) {
+                    lowerDiam = itemHolder.get(i).getX() * 2;
+                    upperDiam = itemHolder.get(i + 1).getX() * 2;
+                    length = itemHolder.get(i + 1).getY() - itemHolder.get(i).getY();
+
+                    if (length > 0.001) {
+                        toolBuilder.holderSectionBuilder().addByUpperDiameter(i, lowerDiam, length, upperDiam, 0.0);
+                    }
+                }
+            }
+            toolBuilder.tlNumberBuilder().setValue(numberTool);
+            toolBuilder.tlAdjRegBuilder().setValue(numberTool);
+            toolBuilder.tlCutcomRegBuilder().setValue(numberTool);
+            toolBuilder.setDescription("Tool Exported HyperMill");
+
+            toolBuilder.commit();
+            toolBuilder.destroy();
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createSphericalMill!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createSphericalMill!!!", e);
         }
     }
 
