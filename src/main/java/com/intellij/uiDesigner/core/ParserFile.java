@@ -30,7 +30,7 @@ class ParserFile {
     private void createOperation(File fileIn) {
 
         String msysName = new SystemCoordinateBlank(fileIn).getMSysName();
-        String toolName = new Tool(fileIn).getNameTool();
+        String toolName = new Tool(fileIn).getFindNameTool();
 
         Operation operation = new Operation(fileIn);
         String groupProgramName = operation.getNameGroupProgram();

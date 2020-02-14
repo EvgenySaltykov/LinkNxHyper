@@ -8,13 +8,17 @@ import javax.swing.*;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Tool {
     private File file;
+
+    private Map<Enum, Pair<Double, Pattern>> itemD;
 
     private int idTool = 0; //корректор на длинну инструмента
     private final String ID_TOOL = "^11: vtoolIDs\\(";
@@ -52,77 +56,6 @@ class Tool {
         }
     }
 
-    private double diamTool = 0.0; //диаметр инструмента
-    private final String DIAM_TOOL = "^11: vtoolDiameter\\(";
-    private final Pattern patternDiamTool = Pattern.compile(DIAM_TOOL);
-
-    private void findDiamTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            diamTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
-    private double diamShankSphereTool = 0.0;
-    private final String DIAM_SHANK_SPHERE_TOOL = "^11: vtipDiameter\\(";
-    private Pattern patternDiamShankSphereTool = Pattern.compile(DIAM_SHANK_SPHERE_TOOL);
-
-    private void findDiamShankShereTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            diamShankSphereTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
-    private double cornerRadTool = 0.0; //угловой радиус инструмента
-    private final String CORNER_RAD_TOOL = "^11: vcornerRadius\\(";
-    private final Pattern patternCornerRadTool = Pattern.compile(CORNER_RAD_TOOL);
-
-    private void findCornerTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            cornerRadTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
-    private double angleTool = 0.0; //угол при вершине у сферической фрезы
-    private final String ANGLE_TOOL = "^11: vtaperAngle\\(";
-    private final Pattern patternAngleTool = Pattern.compile(ANGLE_TOOL);
-
-    private void findAngleTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            angleTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
-    private double lengthTool = 0.0; //длинна инструмента до хвостовика, или патрона
-    private final String LENGTH_TOOL = "^11: vtaperHeight\\(";
-    private final Pattern patternLengthTool = Pattern.compile(LENGTH_TOOL);
-
-    private void findLengthTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            lengthTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
-    private double shankLengthTool = 0.0; // длинна хвостовика, если есть
-    private final String SHANK_LENGTH_TOOL = "^11: vtoolTotalLength\\(";
-    private final Pattern patternShankLengthTool = Pattern.compile(SHANK_LENGTH_TOOL);
-
-    private void findShankLengthTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            double totalLength = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-            shankLengthTool = totalLength - lengthTool;
-        }
-    }
-
-    private double cutLengthTool = 0.0; //длинна режущей части
-    private final String CUT_LENGTH_TOOL = "^11: vcuttingLength\\(";
-    private final Pattern patternCutLengthTool = Pattern.compile(CUT_LENGTH_TOOL);
-
-    private void findCutLengthTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            cutLengthTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
     private boolean isShank = false; // флаг наличия хвостовика
     private final String SHANK_TOOL = "^11: vtoolShaftType\\(parametric\\)";
     private final Pattern patternShankTool = Pattern.compile(SHANK_TOOL);
@@ -130,26 +63,6 @@ class Tool {
     private void findShankTool(String stringIn, Matcher matcher) {
         if (matcher.find()) {
             isShank = true;
-        }
-    }
-
-    private double diamShankTool = 0.0; //диаметр хвостовика
-    private final String DIAM_SHANK_TOOL = "^11: vtoolShaftDiameter\\(";
-    private final Pattern patternDiamShankTool = Pattern.compile(DIAM_SHANK_TOOL);
-
-    private void findDiamShankTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            diamShankTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
-
-    private double chamferLengthShankTool = 0.0; //длинна фаски хвостовика
-    private final String CHAMFER_LENGTH_SHANK_TOOL = "^11: vtoolShaftChamferLength\\(";
-    private final Pattern patternChamferLengthShankTool = Pattern.compile(CHAMFER_LENGTH_SHANK_TOOL);
-
-    private void findChamferLengthShankTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            chamferLengthShankTool = Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
         }
     }
 
@@ -163,7 +76,7 @@ class Tool {
         }
     }
 
-    private ArrayList<HolderPairVar> itemHolder = new ArrayList<HolderPairVar>();
+    private ArrayList<Pair<Double, Double>> itemHolder = new ArrayList<Pair<Double, Double>>();
     private String itemHolderTool = "^11: *oL\\( x\\[/";
     private final Pattern patternItemHolderTool = Pattern.compile(itemHolderTool);
 
@@ -175,7 +88,7 @@ class Tool {
             double itemX = Double.parseDouble(subStr.substring(0, subStr.indexOf("]")));
             double itemY = Double.parseDouble(subStr.substring((subStr.indexOf("/") + 1), subStr.lastIndexOf("]")));
 
-            itemHolder.add(new HolderPairVar(itemX, itemY));
+            itemHolder.add(new Pair(itemX, itemY));
         }
     }
 
@@ -192,18 +105,19 @@ class Tool {
     private String nameTool = "Имя_инструмента_не_найдено"; //имя инструмента
     private final String PATTERN_NAME = ".*cfg\\(\\*WKZKOMMENTAR ";
     private final Pattern patternName = Pattern.compile(PATTERN_NAME);
-    private boolean isNameTool = false;
+    private boolean isFindNameTool = false;
 
     private void findName(String stringIn, Matcher matcher) {
         if (matcher.find()) {
             nameTool = stringIn.substring(matcher.end(), (stringIn.length() - 1)).replace(" ", "_").replace(":", "_");
-            isNameTool = true;
+            isFindNameTool = true;
         }
     }
 
 
     Tool(File file) {
         this.file = file;
+        itemD = initItemToolDouble();
         findParam();
         createTool();
     }
@@ -216,21 +130,15 @@ class Tool {
         while (reader.ready() && maxReadLine > 0) {
             stringIn = reader.getLine();
 
-            if (isNameTool) {
+            if (isFindNameTool) {
                 break;
             } else {
+
+                filMapItemDouble(stringIn, itemD);
+
                 findId(stringIn, patternId.matcher(stringIn));
                 findTypeTool(stringIn, patternTypeTool.matcher(stringIn));
-                findDiamTool(stringIn, patternDiamTool.matcher(stringIn));
-                findDiamShankShereTool(stringIn, patternDiamShankSphereTool.matcher(stringIn));
-                findCornerTool(stringIn, patternCornerRadTool.matcher(stringIn));
-                findAngleTool(stringIn, patternAngleTool.matcher(stringIn));
-                findLengthTool(stringIn, patternLengthTool.matcher(stringIn));
-                findShankLengthTool(stringIn, patternShankLengthTool.matcher(stringIn));
-                findCutLengthTool(stringIn, patternCutLengthTool.matcher(stringIn));
                 findShankTool(stringIn, patternShankTool.matcher(stringIn));
-                findDiamShankTool(stringIn, patternDiamShankTool.matcher(stringIn));
-                findChamferLengthShankTool(stringIn, patternChamferLengthShankTool.matcher(stringIn));
                 findFlagHolderTool(stringIn, patternFlagHolderTool.matcher(stringIn));
                 findItemHolder(stringIn, patternItemHolderTool.matcher(stringIn));
                 findNumber(stringIn, patternNumber.matcher(stringIn));
@@ -247,10 +155,7 @@ class Tool {
             nxopen.cam.CAMSetup setup = nx.getSetup();
 
             nxopen.cam.NCGroup machineRoot = setup.getRoot(CAMSetup.View.MACHINE_TOOL);
-            nxopen.cam.CAMObject[] machineRootMembers = machineRoot.getMembers();
-
             nxopen.cam.NCGroupCollection groups = setup.camgroupCollection();
-            nxopen.cam.NCGroupCollection.UseDefaultName camFalse = NCGroupCollection.UseDefaultName.FALSE;
 
             String[] listTool = getToolList(groups);
             if (!isNewTool(nameTool, listTool)) {
@@ -319,6 +224,69 @@ class Tool {
         return true;
     }
 
+    private enum varDbl {
+        // Имена переменных типа double
+        diamTool,
+        diamShankSphereTool,
+        cornerRadTool,
+        angleTool,
+        lengthTool,
+        shankLengthTool,
+        cutLengthTool,
+        diamShankTool,
+        chamferLengthShankTool
+    }
+
+    private HashMap<Enum, Pair<Double, Pattern>> initItemToolDouble() {
+        //заполнить нулями все параметры инструмента типа double
+
+        HashMap<Enum, Pair<Double, Pattern>> map = new HashMap<Enum, Pair<Double, Pattern>>();
+
+        Pattern dT = Pattern.compile("^11: vtoolDiameter\\(");
+        map.put(varDbl.diamTool, new Pair<Double, Pattern>(0.0, dT));
+
+        Pattern dSST = Pattern.compile("^11: vtipDiameter\\(");
+        map.put(varDbl.diamShankSphereTool, new Pair<Double, Pattern>(0.0, dSST));
+
+        Pattern cRT = Pattern.compile("^11: vcornerRadius\\(");
+        map.put(varDbl.cornerRadTool, new Pair<Double, Pattern>(0.0, cRT));
+
+        Pattern aT = Pattern.compile("^11: vtaperAngle\\(");
+        map.put(varDbl.angleTool, new Pair<Double, Pattern>(0.0, aT));
+
+        Pattern lT = Pattern.compile("^11: vtaperHeight\\(");
+        map.put(varDbl.lengthTool, new Pair<Double, Pattern>(0.0, lT));
+
+        Pattern sLT = Pattern.compile("^11: vtoolTotalLength\\(");
+        map.put(varDbl.shankLengthTool, new Pair<Double, Pattern>(0.0, sLT));
+
+        Pattern cLT = Pattern.compile("^11: vcuttingLength\\(");
+        map.put(varDbl.cutLengthTool, new Pair<Double, Pattern>(0.0, cLT));
+
+        Pattern dST = Pattern.compile("^11: vtoolShaftDiameter\\(");
+        map.put(varDbl.diamShankTool, new Pair<Double, Pattern>(0.0, dST));
+
+        Pattern cLST = Pattern.compile("^11: vtoolShaftChamferLength\\(");
+        map.put(varDbl.chamferLengthShankTool, new Pair<Double, Pattern>(0.0, cLST));
+
+        return map;
+    }
+
+    private void filMapItemDouble(String stringIn, Map<Enum, Pair<Double, Pattern>> map) {
+
+        for (Map.Entry<Enum, Pair<Double, Pattern>> enumPairEntry : map.entrySet()) {
+            findItemDouble(stringIn, enumPairEntry.getValue());
+        }
+    }
+
+    private void findItemDouble(String stringIn, Pair<Double, Pattern> pair) {
+        Matcher matcher = pair.getE().matcher(stringIn);
+
+        if (matcher.find()) {
+            pair.setT(Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1))));
+        }
+    }
+
     private void createBallMill(nxopen.cam.NCGroupCollection groups, nxopen.cam.NCGroup machineRoot) {
         try {
             nxopen.cam.NCGroupCollection.UseDefaultName camFalse = NCGroupCollection.UseDefaultName.FALSE;
@@ -328,10 +296,10 @@ class Tool {
             nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
 
             nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
-            toolBuilder.tlHeightBuilder().setValue(lengthTool);
-            toolBuilder.tlDiameterBuilder().setValue(diamTool);
-            toolBuilder.tlFluteLnBuilder().setValue(cutLengthTool);
-            toolBuilder.tlTaperAngBuilder().setValue(angleTool);
+            toolBuilder.tlHeightBuilder().setValue(itemD.get(varDbl.lengthTool).getT());
+            toolBuilder.tlDiameterBuilder().setValue(itemD.get(varDbl.diamTool).getT());
+            toolBuilder.tlFluteLnBuilder().setValue(itemD.get(varDbl.cutLengthTool).getT());
+            toolBuilder.tlTaperAngBuilder().setValue(itemD.get(varDbl.angleTool).getT());
 
             createShank(toolBuilder);
             createHolder(toolBuilder);
@@ -359,10 +327,10 @@ class Tool {
             nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
 
             nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
-            toolBuilder.tlHeightBuilder().setValue(lengthTool);
-            toolBuilder.tlDiameterBuilder().setValue(diamTool);
-            toolBuilder.tlFluteLnBuilder().setValue(cutLengthTool);
-            toolBuilder.tlCor1RadBuilder().setValue(cornerRadTool);
+            toolBuilder.tlHeightBuilder().setValue(itemD.get(varDbl.lengthTool).getT());
+            toolBuilder.tlDiameterBuilder().setValue(itemD.get(varDbl.diamTool).getT());
+            toolBuilder.tlFluteLnBuilder().setValue(itemD.get(varDbl.cutLengthTool).getT());
+            toolBuilder.tlCor1RadBuilder().setValue(itemD.get(varDbl.cornerRadTool).getT());
 
             createShank(toolBuilder);
             createHolder(toolBuilder);
@@ -390,9 +358,9 @@ class Tool {
             nxopen.cam.Tool myTool = (nxopen.cam.Tool) toolGroup;
 
             nxopen.cam.MillToolBuilder toolBuilder = groups.createMillToolBuilder(myTool);
-            toolBuilder.tlHeightBuilder().setValue(lengthTool);
-            toolBuilder.tlShankDiaBuilder().setValue(diamShankSphereTool);
-            toolBuilder.tlDiameterBuilder().setValue(diamTool);
+            toolBuilder.tlHeightBuilder().setValue(itemD.get(varDbl.lengthTool).getT());
+            toolBuilder.tlShankDiaBuilder().setValue(itemD.get(varDbl.diamShankSphereTool).getT());
+            toolBuilder.tlDiameterBuilder().setValue(itemD.get(varDbl.diamTool).getT());
 
             createShank(toolBuilder);
             createHolder(toolBuilder);
@@ -416,9 +384,9 @@ class Tool {
         if (isShank) {
             try {
                 toolBuilder.setUseTaperedShank(true);
-                toolBuilder.taperedShankDiameterBuilder().setValue(diamShankTool);
-                toolBuilder.taperedShankLengthBuilder().setValue(shankLengthTool);
-                toolBuilder.taperedShankTaperLengthBuilder().setValue(chamferLengthShankTool);
+                toolBuilder.taperedShankDiameterBuilder().setValue(itemD.get(varDbl.diamShankTool).getT());
+                toolBuilder.taperedShankLengthBuilder().setValue(itemD.get(varDbl.shankLengthTool).getT() - itemD.get(varDbl.lengthTool).getT());
+                toolBuilder.taperedShankTaperLengthBuilder().setValue(itemD.get(varDbl.chamferLengthShankTool).getT());
             } catch (NXException e) {
                 new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createShank!!!", e);
             } catch (RemoteException e) {
@@ -435,9 +403,9 @@ class Tool {
             double length;
             if (isHolder) {
                 for (int i = 0; i < (itemHolder.size() - 2); i++) {
-                    lowerDiam = itemHolder.get(i).getX() * 2;
-                    upperDiam = itemHolder.get(i + 1).getX() * 2;
-                    length = itemHolder.get(i + 1).getY() - itemHolder.get(i).getY();
+                    lowerDiam = itemHolder.get(i).getT() * 2;
+                    upperDiam = itemHolder.get(i + 1).getT() * 2;
+                    length = itemHolder.get(i + 1).getE() - itemHolder.get(i).getE();
 
                     if (length > 0.0001) {
                         toolBuilder.holderSectionBuilder().addByUpperDiameter(i, lowerDiam, length, upperDiam, 0.0);
@@ -451,7 +419,7 @@ class Tool {
         }
     }
 
-    String getNameTool() {
+    String getFindNameTool() {
         return this.nameTool;
     }
 }
