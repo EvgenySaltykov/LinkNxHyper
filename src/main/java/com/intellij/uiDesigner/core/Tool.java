@@ -18,106 +18,29 @@ import java.util.regex.Pattern;
 class Tool {
     private File file;
 
-    private Map<Enum, Pair<Double, Pattern>> itemD;
-
-    private int idTool = 0; //корректор на длинну инструмента
-    private final String ID_TOOL = "^11: vtoolIDs\\(";
-    private final Pattern patternId = Pattern.compile(ID_TOOL);
-
-    private void findId(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            idTool = Integer.parseInt(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
+    private Map<Enum, Pair<Double, Pattern>> itemD;//параметры инструмента типа Double
+    private Map<Enum, Pair<Integer, Pattern>> itemI;//параметры инструмента типа Integer
 
     private String typeTool = ""; //тип инструмента ballMill EndMill RadiusMill
-    private final String TYPE_TOOL = "^11: vextToolType\\(";
-    private final Pattern patternTypeTool = Pattern.compile(TYPE_TOOL);
-
-    private void findTypeTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            String type = stringIn.substring(matcher.end(), (stringIn.length() - 1));
-
-            if (type.equals("ballMill")) {
-                typeTool = "BALL_MILL";
-            } else if (type.equals("endMill") || type.equals("radiusMill")) {
-                typeTool = "MILL";
-            } else if (type.equals("lollipop")) {
-                typeTool = "SPHERICAL_MILL";
-            } else {
-                JOptionPane.showMessageDialog(null, "Не удалось определить тип инструмента, обратитесь к разработчику.", "", JOptionPane.WARNING_MESSAGE);
-                new PrintLog(Level.WARNING, "!!!Ошибка определения типа инструмента. method: findTypeTool!!!");
-                PrintLog.closeLogFile(); //закрыть файл log.txt
-                MainForm.fr.setVisible(false);
-                MainForm.fr.dispose();   //закрыть программу
-            }
-
-//            typeTool = stringIn.substring(matcher.end(), (stringIn.length() - 1)).equals("1") ? "BALL_MILL" : "MILL";
-        }
-    }
+    private final Pattern patternTypeTool = Pattern.compile("^11: vextToolType\\(");
 
     private boolean isShank = false; // флаг наличия хвостовика
-    private final String SHANK_TOOL = "^11: vtoolShaftType\\(parametric\\)";
-    private final Pattern patternShankTool = Pattern.compile(SHANK_TOOL);
-
-    private void findShankTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            isShank = true;
-        }
-    }
+    private final Pattern patternShankTool = Pattern.compile("^11: vtoolShaftType\\(parametric\\)");
 
     private boolean isHolder = false; //флаг наличия патрона
-    private final String FLAG_HOLDER_TOOL = "^11: *oL\\( x\\[/";
-    private final Pattern patternFlagHolderTool = Pattern.compile(FLAG_HOLDER_TOOL);
-
-    private void findFlagHolderTool(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            isHolder = true;
-        }
-    }
+    private final Pattern patternFlagHolderTool = Pattern.compile("^11: *oL\\( x\\[/");
 
     private ArrayList<Pair<Double, Double>> itemHolder = new ArrayList<Pair<Double, Double>>();
-    private String itemHolderTool = "^11: *oL\\( x\\[/";
-    private final Pattern patternItemHolderTool = Pattern.compile(itemHolderTool);
-
-    private void findItemHolder(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            String subStr;
-            subStr = stringIn.substring(matcher.end());
-
-            double itemX = Double.parseDouble(subStr.substring(0, subStr.indexOf("]")));
-            double itemY = Double.parseDouble(subStr.substring((subStr.indexOf("/") + 1), subStr.lastIndexOf("]")));
-
-            itemHolder.add(new Pair(itemX, itemY));
-        }
-    }
-
-    private int numberTool = 0; //номер инструмента
-    private final String NUMBER_TOOL = ".*cfg\\(\\*WKZNUMMER ";
-    private final Pattern patternNumber = Pattern.compile(NUMBER_TOOL);
-
-    private void findNumber(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            numberTool = Integer.parseInt(stringIn.substring(matcher.end(), (stringIn.length() - 1)));
-        }
-    }
+    private final Pattern patternItemHolderTool = Pattern.compile("^11: *oL\\( x\\[/");
 
     private String nameTool = "Имя_инструмента_не_найдено"; //имя инструмента
-    private final String PATTERN_NAME = ".*cfg\\(\\*WKZKOMMENTAR ";
-    private final Pattern patternName = Pattern.compile(PATTERN_NAME);
+    private final Pattern patternName = Pattern.compile(".*cfg\\(\\*WKZKOMMENTAR ");
     private boolean isFindNameTool = false;
-
-    private void findName(String stringIn, Matcher matcher) {
-        if (matcher.find()) {
-            nameTool = stringIn.substring(matcher.end(), (stringIn.length() - 1)).replace(" ", "_").replace(":", "_");
-            isFindNameTool = true;
-        }
-    }
-
 
     Tool(File file) {
         this.file = file;
         itemD = initItemToolDouble();
+        itemI = initItemToolInt();
         findParam();
         createTool();
     }
@@ -134,14 +57,13 @@ class Tool {
                 break;
             } else {
 
-                filMapItemDouble(stringIn, itemD);
+                fillMapItemDouble(stringIn, itemD);
+                fillMapItemInteger(stringIn, itemI);
 
-                findId(stringIn, patternId.matcher(stringIn));
                 findTypeTool(stringIn, patternTypeTool.matcher(stringIn));
                 findShankTool(stringIn, patternShankTool.matcher(stringIn));
                 findFlagHolderTool(stringIn, patternFlagHolderTool.matcher(stringIn));
                 findItemHolder(stringIn, patternItemHolderTool.matcher(stringIn));
-                findNumber(stringIn, patternNumber.matcher(stringIn));
                 findName(stringIn, patternName.matcher(stringIn));
             }
 
@@ -272,7 +194,8 @@ class Tool {
         return map;
     }
 
-    private void filMapItemDouble(String stringIn, Map<Enum, Pair<Double, Pattern>> map) {
+    private void fillMapItemDouble(String stringIn, Map<Enum, Pair<Double, Pattern>> map) {
+        //получить параметры инструмента типа Double
 
         for (Map.Entry<Enum, Pair<Double, Pattern>> enumPairEntry : map.entrySet()) {
             findItemDouble(stringIn, enumPairEntry.getValue());
@@ -284,6 +207,42 @@ class Tool {
 
         if (matcher.find()) {
             pair.setT(Double.parseDouble(stringIn.substring(matcher.end(), (stringIn.length() - 1))));
+        }
+    }
+
+    private enum varInt {
+        // Имена переменных типа int
+        idTool,
+        numberTool
+    }
+
+    private HashMap<Enum, Pair<Integer, Pattern>> initItemToolInt() {
+        //заполнить нулями все параметры инструмента типа Integer
+
+        HashMap<Enum, Pair<Integer, Pattern>> map = new HashMap<Enum, Pair<Integer, Pattern>>();
+
+        Pattern id = Pattern.compile("^11: vtoolIDs\\(");
+        map.put(varInt.idTool, new Pair<Integer, Pattern>(0, id));
+
+        Pattern nT = Pattern.compile(".*cfg\\(\\*WKZNUMMER ");
+        map.put(varInt.numberTool, new Pair<Integer, Pattern>(0, nT));
+
+        return map;
+    }
+
+    private void fillMapItemInteger(String stringIn, Map<Enum, Pair<Integer, Pattern>> map) {
+        //получить параметры инструмента типа Integer
+
+        for (Map.Entry<Enum, Pair<Integer, Pattern>> enumPairEntry : map.entrySet()) {
+            findItemInteger(stringIn, enumPairEntry.getValue());
+        }
+    }
+
+    private void findItemInteger(String stringIn, Pair<Integer, Pattern> pair) {
+        Matcher matcher = pair.getE().matcher(stringIn);
+
+        if (matcher.find()) {
+            pair.setT(Integer.parseInt(stringIn.substring(matcher.end(), (stringIn.length() - 1))));
         }
     }
 
@@ -303,11 +262,7 @@ class Tool {
 
             createShank(toolBuilder);
             createHolder(toolBuilder);
-
-            toolBuilder.tlNumberBuilder().setValue(numberTool);
-            toolBuilder.tlAdjRegBuilder().setValue(numberTool);
-            toolBuilder.tlCutcomRegBuilder().setValue(numberTool);
-            toolBuilder.setDescription("Tool Exported HyperMill");
+            createIdTool(toolBuilder);
 
             toolBuilder.commit();
             toolBuilder.destroy();
@@ -334,11 +289,7 @@ class Tool {
 
             createShank(toolBuilder);
             createHolder(toolBuilder);
-
-            toolBuilder.tlNumberBuilder().setValue(numberTool);
-            toolBuilder.tlAdjRegBuilder().setValue(numberTool);
-            toolBuilder.tlCutcomRegBuilder().setValue(numberTool);
-            toolBuilder.setDescription("Tool Exported HyperMill");
+            createIdTool(toolBuilder);
 
             toolBuilder.commit();
             toolBuilder.destroy();
@@ -364,11 +315,7 @@ class Tool {
 
             createShank(toolBuilder);
             createHolder(toolBuilder);
-
-            toolBuilder.tlNumberBuilder().setValue(numberTool);
-            toolBuilder.tlAdjRegBuilder().setValue(numberTool);
-            toolBuilder.tlCutcomRegBuilder().setValue(numberTool);
-            toolBuilder.setDescription("Tool Exported HyperMill");
+            createIdTool(toolBuilder);
 
             toolBuilder.commit();
             toolBuilder.destroy();
@@ -416,6 +363,73 @@ class Tool {
             new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createHolder!!!", e);
         } catch (RemoteException e) {
             new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createHolder!!!", e);
+        }
+    }
+
+    private void createIdTool(nxopen.cam.MillToolBuilder toolBuilder) {
+        // установить номер инструмента, номер корректора, и т.д.
+        try {
+            toolBuilder.tlNumberBuilder().setValue(itemI.get(varInt.numberTool).getT());
+            toolBuilder.tlAdjRegBuilder().setValue(itemI.get(varInt.idTool).getT());
+            toolBuilder.tlCutcomRegBuilder().setValue(itemI.get(varInt.idTool).getT());
+            toolBuilder.setDescription("Tool Exported HyperMill");
+        } catch (NXException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка NXException в методе  createIdTool!!!", e);
+        } catch (RemoteException e) {
+            new PrintLog(Level.WARNING, "!!!Ошибка RemoteException в методе  createIdTool!!!", e);
+        }
+    }
+
+    private void findTypeTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            String type = stringIn.substring(matcher.end(), (stringIn.length() - 1));
+
+            if (type.equals("ballMill")) {
+                typeTool = "BALL_MILL";
+            } else if (type.equals("endMill") || type.equals("radiusMill")) {
+                typeTool = "MILL";
+            } else if (type.equals("lollipop")) {
+                typeTool = "SPHERICAL_MILL";
+            } else {
+                JOptionPane.showMessageDialog(null, "Не удалось определить тип инструмента, обратитесь к разработчику.", "", JOptionPane.WARNING_MESSAGE);
+                new PrintLog(Level.WARNING, "!!!Ошибка определения типа инструмента. method: findTypeTool!!!");
+                PrintLog.closeLogFile(); //закрыть файл log.txt
+                MainForm.fr.setVisible(false);
+                MainForm.fr.dispose();   //закрыть программу
+            }
+
+//            typeTool = stringIn.substring(matcher.end(), (stringIn.length() - 1)).equals("1") ? "BALL_MILL" : "MILL";
+        }
+    }
+
+    private void findShankTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            isShank = true;
+        }
+    }
+
+    private void findFlagHolderTool(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            isHolder = true;
+        }
+    }
+
+    private void findItemHolder(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            String subStr;
+            subStr = stringIn.substring(matcher.end());
+
+            double itemX = Double.parseDouble(subStr.substring(0, subStr.indexOf("]")));
+            double itemY = Double.parseDouble(subStr.substring((subStr.indexOf("/") + 1), subStr.lastIndexOf("]")));
+
+            itemHolder.add(new Pair(itemX, itemY));
+        }
+    }
+
+    private void findName(String stringIn, Matcher matcher) {
+        if (matcher.find()) {
+            nameTool = stringIn.substring(matcher.end(), (stringIn.length() - 1)).replace(" ", "_").replace(":", "_");
+            isFindNameTool = true;
         }
     }
 
